@@ -1,0 +1,138 @@
+{
+  "evaluation_id": "blind-v2",
+  "selection_status": "frozen_before_model_run",
+  "selection_date": "2026-08-29",
+  "reference_ref": "v0.1.4",
+  "semantic_behavior_base_commit": "59a8540d8eaed89a1a8af0398c237879a36a6f1a",
+  "freeze_commit_status": "selection and generated manifest must be committed before the first model run",
+  "frozen_versions": {
+    "evidence_packet": "0.5.0",
+    "workflow": "0.1.0",
+    "judge_prompt": "1.1.0",
+    "critic_prompt": "1.1.0"
+  },
+  "policy": {
+    "purpose": "repository-isolated, unseen-to-development evaluation of complete eight-field T1 reports",
+    "not_official_hidden_test": true,
+    "no_tuning_on_results": true,
+    "failure_policy": "retain failures in blind-v2; any behavior change must be evaluated on a new blind-v3 selection",
+    "accuracy_scope": "ten complete reports and eighty field labels; resource-failure robustness is reported separately",
+    "reference_scope": "dataset-derived provisional labels from human-verified v0.1.4 rows and published v0.1.1-to-v0.1.2 corrections; independent review remains required"
+  },
+  "excluded_development_entry_ids": [
+    "entry-00062",
+    "entry-00065",
+    "entry-00066",
+    "entry-00080",
+    "entry-00082",
+    "entry-00084",
+    "entry-00087",
+    "entry-00107",
+    "entry-00114",
+    "entry-00121",
+    "entry-00146",
+    "entry-00319",
+    "entry-00320",
+    "entry-00383",
+    "entry-00389",
+    "entry-00394",
+    "entry-00419",
+    "entry-00430",
+    "entry-00437",
+    "entry-00462"
+  ],
+  "excluded_development_repositories": [
+    "https://github.com/BerriAI/litellm",
+    "https://github.com/FlowiseAI/Flowise",
+    "https://github.com/google/adk-python",
+    "https://github.com/langchain-ai/langchain",
+    "https://github.com/langflow-ai/langflow",
+    "https://github.com/mlflow/mlflow",
+    "https://github.com/modelcontextprotocol/typescript-sdk",
+    "https://github.com/n8n-io/n8n",
+    "https://github.com/nltk/nltk",
+    "https://github.com/onnx/onnx",
+    "https://github.com/open-webui/open-webui",
+    "https://github.com/openclaw/openclaw",
+    "https://github.com/paperclipai/paperclip",
+    "https://github.com/PrefectHQ/fastmcp",
+    "https://github.com/Tencent/WeKnora"
+  ],
+  "cases": [
+    {
+      "case_id": "blind-v2-history-entry-00097",
+      "kind": "history_revision",
+      "entry_id": "entry-00097",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["trace"],
+      "focus": "AutoGPT cross-file execution trace revision"
+    },
+    {
+      "case_id": "blind-v2-history-entry-00334",
+      "kind": "history_revision",
+      "entry_id": "entry-00334",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.code", "critical_operation.line", "trace"],
+      "focus": "Trivy supply-chain workflow entry and trace revision"
+    },
+    {
+      "case_id": "blind-v2-history-entry-00074",
+      "kind": "history_revision",
+      "entry_id": "entry-00074",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.code", "trace"],
+      "focus": "Ollama unauthenticated API entry and trace revision"
+    },
+    {
+      "case_id": "blind-v2-history-entry-00153",
+      "kind": "history_revision",
+      "entry_id": "entry-00153",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.line", "entry_point.code", "trace"],
+      "focus": "NVIDIA NeMo unsafe deserialization entry and trace revision"
+    },
+    {
+      "case_id": "blind-v2-history-entry-00119",
+      "kind": "history_revision",
+      "entry_id": "entry-00119",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.code", "critical_operation.code", "trace"],
+      "focus": "Milvus unauthenticated expression endpoint full semantic revision"
+    },
+    {
+      "case_id": "blind-v2-clean-entry-00314",
+      "kind": "clean",
+      "entry_id": "entry-00314",
+      "expected_changed_fields": [],
+      "focus": "Apache Airflow verified clean authorization record"
+    },
+    {
+      "case_id": "blind-v2-clean-entry-00507",
+      "kind": "clean",
+      "entry_id": "entry-00507",
+      "expected_changed_fields": [],
+      "focus": "n8n-mcp verified clean authentication record"
+    },
+    {
+      "case_id": "blind-v2-clean-entry-00311",
+      "kind": "clean",
+      "entry_id": "entry-00311",
+      "expected_changed_fields": [],
+      "focus": "jlowin FastMCP verified clean OAuth record"
+    },
+    {
+      "case_id": "blind-v2-clean-entry-00341",
+      "kind": "clean",
+      "entry_id": "entry-00341",
+      "expected_changed_fields": [],
+      "focus": "NVIDIA NeMo verified clean deserialization record"
+    },
+    {
+      "case_id": "blind-v2-clean-entry-00058",
+      "kind": "clean",
+      "entry_id": "entry-00058",
+      "expected_changed_fields": [],
+      "focus": "Milvus verified clean authentication-bypass record"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "evaluation_id": "helper-regression-v1",
+  "selection_status": "frozen",
+  "development_only": true,
+  "independent_blind_test": false,
+  "behavior_commit": "5734fcb",
+  "purpose": "One-case targeted regression for the Paperclip helper-definition evidence gap found by final-smoke-v1.",
+  "cases": [
+    {
+      "entry_id": "entry-00448",
+      "report_id": "GHSA-47WQ-CJ9Q-WPMP",
+      "expected_focus": ["entry_point", "critical_operation", "commit", "trace"]
+    }
+  ],
+  "run_settings": {
+    "provider_config": "configs/provider.qwen.json",
+    "model": "qwen3.8-flash",
+    "enable_thinking": false,
+    "critic_policy": "review-risk",
+    "maximum_cases": 1,
+    "maximum_total_api_calls": 2
+  }
+}

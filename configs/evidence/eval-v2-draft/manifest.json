@@ -1,0 +1,1270 @@
+{
+  "version": "claims-new-repositories-v2-draft",
+  "created_date": "2026-10-03",
+  "review_status": "draft; independent human reference review pending",
+  "scope": "24 authored semantic claims plus 3 controls; 4 new local repositories; no model predictions",
+  "repository_exposure": "Not present in prior local material root; general model training exposure unknown",
+  "limitations": [
+    "source-grounded authored claims, not representative natural vulnerability reports",
+    "related function families and Flask/Werkzeug dependency correlation",
+    "8 insufficient-evidence references focus on absent deployment/caller state",
+    "reference labels authored by development agent and not independently reviewed"
+  ],
+  "cases": [
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/password-hash",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h01",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：此处把生成的 salt、password 和 method 传给 _hash_internal，并把返回的算法标识、salt 和哈希拼成返回值。\n源码引用 src/werkzeug/security.py:108：\n    h, actual_method = _hash_internal(method, salt, password)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "此处把生成的 salt、password 和 method 传给 _hash_internal，并把返回的算法标识、salt 和哈希拼成返回值。",
+            "origin": {
+              "quote": "此处把生成的 salt、password 和 method 传给 _hash_internal，并把返回的算法标识、salt 和哈希拼成返回值。",
+              "start": 5,
+              "end": 77
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 108,
+              "code": "    h, actual_method = _hash_internal(method, salt, password)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "generate_password_hash 的 107–109 行明确生成 salt、调用 _hash_internal，再返回 method$salt$hash；内部实现为 scrypt 或 pbkdf2，声明不涉及某部署的实际强度。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L20-L109",
+        "review_range": "20-109",
+        "review_excerpt": "    20 |         raise ValueError(\"Salt length must be at least 1.\")\n    21 | \n    22 |     return \"\".join(secrets.choice(SALT_CHARS) for _ in range(length))\n    23 | \n    24 | \n    25 | def _hash_internal(method: str, salt: str, password: str) -> tuple[str, str]:\n    26 |     method, *args = method.split(\":\")\n    27 |     salt_bytes = salt.encode()\n    28 |     password_bytes = password.encode()\n    29 | \n    30 |     if method == \"scrypt\":\n    31 |         if not args:\n    32 |             n = 2**15\n    33 |             r = 8\n    34 |             p = 1\n    35 |         else:\n    36 |             try:\n    37 |                 n, r, p = map(int, args)\n    38 |             except ValueError:\n    39 |                 raise ValueError(\"'scrypt' takes 3 arguments.\") from None\n    40 | \n    41 |         maxmem = 132 * n * r * p  # ideally 128, but some extra seems needed\n    42 |         return (\n    43 |             hashlib.scrypt(\n    44 |                 password_bytes, salt=salt_bytes, n=n, r=r, p=p, maxmem=maxmem\n    45 |             ).hex(),\n    46 |             f\"scrypt:{n}:{r}:{p}\",\n    47 |         )\n    48 |     elif method == \"pbkdf2\":\n    49 |         len_args = len(args)\n    50 | \n    51 |         if len_args == 0:\n    52 |             hash_name = \"sha256\"\n    53 |             iterations = DEFAULT_PBKDF2_ITERATIONS\n    54 |         elif len_args == 1:\n    55 |             hash_name = args[0]\n    56 |             iterations = DEFAULT_PBKDF2_ITERATIONS\n    57 |         elif len_args == 2:\n    58 |             hash_name = args[0]\n    59 |             iterations = int(args[1])\n    60 |         else:\n    61 |             raise ValueError(\"'pbkdf2' takes 2 arguments.\")\n    62 | \n    63 |         return (\n    64 |             hashlib.pbkdf2_hmac(\n    65 |                 hash_name, password_bytes, salt_bytes, iterations\n    66 |             ).hex(),\n    67 |             f\"pbkdf2:{hash_name}:{iterations}\",\n    68 |         )\n    69 |     else:\n    70 |         raise ValueError(f\"Invalid hash method '{method}'.\")\n    71 | \n    72 | \n    73 | def generate_password_hash(\n    74 |     password: str, method: str = \"scrypt\", salt_length: int = 16\n    75 | ) -> str:\n    76 |     \"\"\"Securely hash a password for storage. A password can be compared to a stored hash\n    77 |     using :func:`check_password_hash`.\n    78 | \n    79 |     The following methods are supported:\n    80 | \n    81 |     -   ``scrypt``, the default. The parameters are ``n``, ``r``, and ``p``, the default\n    82 |         is ``scrypt:32768:8:1``. See :func:`hashlib.scrypt`.\n    83 |     -   ``pbkdf2``, less secure. The parameters are ``hash_method`` and ``iterations``,\n    84 |         the default is ``pbkdf2:sha256:600000``. See :func:`hashlib.pbkdf2_hmac`.\n    85 | \n    86 |     Default parameters may be updated to reflect current guidelines, and methods may be\n    87 |     deprecated and removed if they are no longer considered secure. To migrate old\n    88 |     hashes, you may generate a new hash when checking an old hash, or you may contact\n    89 |     users with a link to reset their password.\n    90 | \n    91 |     :param password: The plaintext password.\n    92 |     :param method: The key derivation function and parameters.\n    93 |     :param salt_length: The number of characters to generate for the salt.\n    94 | \n    95 |     .. versionchanged:: 3.1\n    96 |         The default iterations for pbkdf2 was increased to 1,000,000.\n    97 | \n    98 |     .. versionchanged:: 2.3\n    99 |         Scrypt support was added.\n   100 | \n   101 |     .. versionchanged:: 2.3\n   102 |         The default iterations for pbkdf2 was increased to 600,000.\n   103 | \n   104 |     .. versionchanged:: 2.3\n   105 |         All plain hashes are deprecated and will not be supported in Werkzeug 3.0.\n   106 |     \"\"\"\n   107 |     salt = gen_salt(salt_length)\n   108 |     h, actual_method = _hash_internal(method, salt, password)\n   109 |     return f\"{actual_method}${salt}${h}\"",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/password-check",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h02",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：此处重新计算给定口令在存储 method 与 salt 下的哈希，并调用 hmac.compare_digest 与存储哈希值比较。\n源码引用 src/werkzeug/security.py:131：\n    return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "此处重新计算给定口令在存储 method 与 salt 下的哈希，并调用 hmac.compare_digest 与存储哈希值比较。",
+            "origin": {
+              "quote": "此处重新计算给定口令在存储 method 与 salt 下的哈希，并调用 hmac.compare_digest 与存储哈希值比较。",
+              "start": 5,
+              "end": 71
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 131,
+              "code": "    return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "126–131 行拆出 method、salt、hashval，最终返回 compare_digest(_hash_internal(...)[0], hashval)。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L112-L131",
+        "review_range": "112-131",
+        "review_excerpt": "   112 | def check_password_hash(pwhash: str, password: str) -> bool:\n   113 |     \"\"\"Securely check that the given stored password hash, previously generated using\n   114 |     :func:`generate_password_hash`, matches the given password.\n   115 | \n   116 |     Methods may be deprecated and removed if they are no longer considered secure. To\n   117 |     migrate old hashes, you may generate a new hash when checking an old hash, or you\n   118 |     may contact users with a link to reset their password.\n   119 | \n   120 |     :param pwhash: The hashed password.\n   121 |     :param password: The plaintext password.\n   122 | \n   123 |     .. versionchanged:: 2.3\n   124 |         All plain hashes are deprecated and will not be supported in Werkzeug 3.0.\n   125 |     \"\"\"\n   126 |     try:\n   127 |         method, salt, hashval = pwhash.split(\"$\", 2)\n   128 |     except ValueError:\n   129 |         return False\n   130 | \n   131 |     return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/password-hash",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h03",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：generate_password_hash 在这里调用 AES 加密口令，并返回可由同一密钥还原的 AES 密文。\n源码引用 src/werkzeug/security.py:108：\n    h, actual_method = _hash_internal(method, salt, password)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "generate_password_hash 在这里调用 AES 加密口令，并返回可由同一密钥还原的 AES 密文。",
+            "origin": {
+              "quote": "generate_password_hash 在这里调用 AES 加密口令，并返回可由同一密钥还原的 AES 密文。",
+              "start": 5,
+              "end": 63
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 108,
+              "code": "    h, actual_method = _hash_internal(method, salt, password)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "所列函数及 _hash_internal 显示 scrypt/pbkdf2 密码哈希和盐，未使用 AES；该局部函数的操作声明被实现反证，不推断外部系统安全。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L20-L109",
+        "review_range": "20-109",
+        "review_excerpt": "    20 |         raise ValueError(\"Salt length must be at least 1.\")\n    21 | \n    22 |     return \"\".join(secrets.choice(SALT_CHARS) for _ in range(length))\n    23 | \n    24 | \n    25 | def _hash_internal(method: str, salt: str, password: str) -> tuple[str, str]:\n    26 |     method, *args = method.split(\":\")\n    27 |     salt_bytes = salt.encode()\n    28 |     password_bytes = password.encode()\n    29 | \n    30 |     if method == \"scrypt\":\n    31 |         if not args:\n    32 |             n = 2**15\n    33 |             r = 8\n    34 |             p = 1\n    35 |         else:\n    36 |             try:\n    37 |                 n, r, p = map(int, args)\n    38 |             except ValueError:\n    39 |                 raise ValueError(\"'scrypt' takes 3 arguments.\") from None\n    40 | \n    41 |         maxmem = 132 * n * r * p  # ideally 128, but some extra seems needed\n    42 |         return (\n    43 |             hashlib.scrypt(\n    44 |                 password_bytes, salt=salt_bytes, n=n, r=r, p=p, maxmem=maxmem\n    45 |             ).hex(),\n    46 |             f\"scrypt:{n}:{r}:{p}\",\n    47 |         )\n    48 |     elif method == \"pbkdf2\":\n    49 |         len_args = len(args)\n    50 | \n    51 |         if len_args == 0:\n    52 |             hash_name = \"sha256\"\n    53 |             iterations = DEFAULT_PBKDF2_ITERATIONS\n    54 |         elif len_args == 1:\n    55 |             hash_name = args[0]\n    56 |             iterations = DEFAULT_PBKDF2_ITERATIONS\n    57 |         elif len_args == 2:\n    58 |             hash_name = args[0]\n    59 |             iterations = int(args[1])\n    60 |         else:\n    61 |             raise ValueError(\"'pbkdf2' takes 2 arguments.\")\n    62 | \n    63 |         return (\n    64 |             hashlib.pbkdf2_hmac(\n    65 |                 hash_name, password_bytes, salt_bytes, iterations\n    66 |             ).hex(),\n    67 |             f\"pbkdf2:{hash_name}:{iterations}\",\n    68 |         )\n    69 |     else:\n    70 |         raise ValueError(f\"Invalid hash method '{method}'.\")\n    71 | \n    72 | \n    73 | def generate_password_hash(\n    74 |     password: str, method: str = \"scrypt\", salt_length: int = 16\n    75 | ) -> str:\n    76 |     \"\"\"Securely hash a password for storage. A password can be compared to a stored hash\n    77 |     using :func:`check_password_hash`.\n    78 | \n    79 |     The following methods are supported:\n    80 | \n    81 |     -   ``scrypt``, the default. The parameters are ``n``, ``r``, and ``p``, the default\n    82 |         is ``scrypt:32768:8:1``. See :func:`hashlib.scrypt`.\n    83 |     -   ``pbkdf2``, less secure. The parameters are ``hash_method`` and ``iterations``,\n    84 |         the default is ``pbkdf2:sha256:600000``. See :func:`hashlib.pbkdf2_hmac`.\n    85 | \n    86 |     Default parameters may be updated to reflect current guidelines, and methods may be\n    87 |     deprecated and removed if they are no longer considered secure. To migrate old\n    88 |     hashes, you may generate a new hash when checking an old hash, or you may contact\n    89 |     users with a link to reset their password.\n    90 | \n    91 |     :param password: The plaintext password.\n    92 |     :param method: The key derivation function and parameters.\n    93 |     :param salt_length: The number of characters to generate for the salt.\n    94 | \n    95 |     .. versionchanged:: 3.1\n    96 |         The default iterations for pbkdf2 was increased to 1,000,000.\n    97 | \n    98 |     .. versionchanged:: 2.3\n    99 |         Scrypt support was added.\n   100 | \n   101 |     .. versionchanged:: 2.3\n   102 |         The default iterations for pbkdf2 was increased to 600,000.\n   103 | \n   104 |     .. versionchanged:: 2.3\n   105 |         All plain hashes are deprecated and will not be supported in Werkzeug 3.0.\n   106 |     \"\"\"\n   107 |     salt = gen_salt(salt_length)\n   108 |     h, actual_method = _hash_internal(method, salt, password)\n   109 |     return f\"{actual_method}${salt}${h}\"",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/safe-path",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h04",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：safe_join 在这里仅把文件名字符串拼接起来，没有规范化路径，也不会拒绝 .. 或 ../ 开头的片段。\n源码引用 src/werkzeug/security.py:152：\n            filename = posixpath.normpath(filename)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "safe_join 在这里仅把文件名字符串拼接起来，没有规范化路径，也不会拒绝 .. 或 ../ 开头的片段。",
+            "origin": {
+              "quote": "safe_join 在这里仅把文件名字符串拼接起来，没有规范化路径，也不会拒绝 .. 或 ../ 开头的片段。",
+              "start": 5,
+              "end": 60
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 152,
+              "code": "            filename = posixpath.normpath(filename)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "152 行 normpath 规范化，154–162 行明确拒绝多种绝对路径及 ..、../ 前缀。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L134-L166",
+        "review_range": "134-166",
+        "review_excerpt": "   134 | def safe_join(directory: str, *pathnames: str) -> str | None:\n   135 |     \"\"\"Safely join zero or more untrusted path components to a base\n   136 |     directory to avoid escaping the base directory.\n   137 | \n   138 |     :param directory: The trusted base directory.\n   139 |     :param pathnames: The untrusted path components relative to the\n   140 |         base directory.\n   141 |     :return: A safe path, otherwise ``None``.\n   142 |     \"\"\"\n   143 |     if not directory:\n   144 |         # Ensure we end up with ./path if directory=\"\" is given,\n   145 |         # otherwise the first untrusted part could become trusted.\n   146 |         directory = \".\"\n   147 | \n   148 |     parts = [directory]\n   149 | \n   150 |     for filename in pathnames:\n   151 |         if filename != \"\":\n   152 |             filename = posixpath.normpath(filename)\n   153 | \n   154 |         if (\n   155 |             any(sep in filename for sep in _os_alt_seps)\n   156 |             or os.path.isabs(filename)\n   157 |             # ntpath.isabs doesn't catch this on Python < 3.11\n   158 |             or filename.startswith(\"/\")\n   159 |             or filename == \"..\"\n   160 |             or filename.startswith(\"../\")\n   161 |         ):\n   162 |             return None\n   163 | \n   164 |         parts.append(filename)\n   165 | \n   166 |     return posixpath.join(*parts)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/safe-path",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h05",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：部署调用方在进入 safe_join 前已经核验登录用户有权访问该目录，并保证 directory 只能来自可信配置。\n源码引用 src/werkzeug/security.py:166：\n    return posixpath.join(*parts)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "部署调用方在进入 safe_join 前已经核验登录用户有权访问该目录，并保证 directory 只能来自可信配置。",
+            "origin": {
+              "quote": "部署调用方在进入 safe_join 前已经核验登录用户有权访问该目录，并保证 directory 只能来自可信配置。",
+              "start": 5,
+              "end": 64
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 166,
+              "code": "    return posixpath.join(*parts)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "函数只收到 directory/pathnames。没有部署路由、鉴权和 directory 来源；局部路径检查既不能证明也不能否定调用方授权。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L134-L166",
+        "review_range": "134-166",
+        "review_excerpt": "   134 | def safe_join(directory: str, *pathnames: str) -> str | None:\n   135 |     \"\"\"Safely join zero or more untrusted path components to a base\n   136 |     directory to avoid escaping the base directory.\n   137 | \n   138 |     :param directory: The trusted base directory.\n   139 |     :param pathnames: The untrusted path components relative to the\n   140 |         base directory.\n   141 |     :return: A safe path, otherwise ``None``.\n   142 |     \"\"\"\n   143 |     if not directory:\n   144 |         # Ensure we end up with ./path if directory=\"\" is given,\n   145 |         # otherwise the first untrusted part could become trusted.\n   146 |         directory = \".\"\n   147 | \n   148 |     parts = [directory]\n   149 | \n   150 |     for filename in pathnames:\n   151 |         if filename != \"\":\n   152 |             filename = posixpath.normpath(filename)\n   153 | \n   154 |         if (\n   155 |             any(sep in filename for sep in _os_alt_seps)\n   156 |             or os.path.isabs(filename)\n   157 |             # ntpath.isabs doesn't catch this on Python < 3.11\n   158 |             or filename.startswith(\"/\")\n   159 |             or filename == \"..\"\n   160 |             or filename.startswith(\"../\")\n   161 |         ):\n   162 |             return None\n   163 | \n   164 |         parts.append(filename)\n   165 | \n   166 |     return posixpath.join(*parts)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "werkzeug/file-serving",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h06",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：这套生产服务的全部文件下载请求都经过这个 send_from_directory 调用，因此其他路由不存在绕过。\n源码引用 src/werkzeug/utils.py:577：\n    return send_file(path_str, environ, **kwargs)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这套生产服务的全部文件下载请求都经过这个 send_from_directory 调用，因此其他路由不存在绕过。",
+            "origin": {
+              "quote": "这套生产服务的全部文件下载请求都经过这个 send_from_directory 调用，因此其他路由不存在绕过。",
+              "start": 5,
+              "end": 61
+            },
+            "node": {
+              "file": "src/werkzeug/utils.py",
+              "line": 577,
+              "code": "    return send_file(path_str, environ, **kwargs)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "可见单个函数对路径检查后调用 send_file，没有完整生产路由和配置，不能证明全部下载入口均经过此函数。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/utils.py",
+        "source_sha256": "d52b54a88e396dcc49c78b23f35a953d01f95fc56e5a0b4809588923f04a83e7",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/utils.py#L538-L577",
+        "review_range": "538-577",
+        "review_excerpt": "   538 | def send_from_directory(\n   539 |     directory: os.PathLike[str] | str,\n   540 |     path: os.PathLike[str] | str,\n   541 |     environ: WSGIEnvironment,\n   542 |     **kwargs: t.Any,\n   543 | ) -> Response:\n   544 |     \"\"\"Send a file from within a directory using :func:`send_file`.\n   545 | \n   546 |     This is a secure way to serve files from a folder, such as static\n   547 |     files or uploads. Uses :func:`~werkzeug.security.safe_join` to\n   548 |     ensure the path coming from the client is not maliciously crafted to\n   549 |     point outside the specified directory.\n   550 | \n   551 |     If the final path does not point to an existing regular file,\n   552 |     returns a 404 :exc:`~werkzeug.exceptions.NotFound` error.\n   553 | \n   554 |     :param directory: The directory that ``path`` must be located under. This *must not*\n   555 |         be a value provided by the client, otherwise it becomes insecure.\n   556 |     :param path: The path to the file to send, relative to ``directory``. This is the\n   557 |         part of the path provided by the client, which is checked for security.\n   558 |     :param environ: The WSGI environ for the current request.\n   559 |     :param kwargs: Arguments to pass to :func:`send_file`.\n   560 | \n   561 |     .. versionadded:: 2.0\n   562 |         Adapted from Flask's implementation.\n   563 |     \"\"\"\n   564 |     path_str = safe_join(os.fspath(directory), os.fspath(path))\n   565 | \n   566 |     if path_str is None:\n   567 |         raise NotFound()\n   568 | \n   569 |     # Flask will pass app.root_path, allowing its send_from_directory\n   570 |     # wrapper to not have to deal with paths.\n   571 |     if \"_root_path\" in kwargs:\n   572 |         path_str = os.path.join(kwargs[\"_root_path\"], path_str)\n   573 | \n   574 |     if not os.path.isfile(path_str):\n   575 |         raise NotFound()\n   576 | \n   577 |     return send_file(path_str, environ, **kwargs)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/session-reading",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h07",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：此处将客户端 session cookie 交给签名序列化器的 loads，并传入由应用 permanent_session_lifetime 计算的 max_age；BadSignature 被捕获。\n源码引用 src/flask/sessions.py:346：\n            data = s.loads(val, max_age=max_age)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "此处将客户端 session cookie 交给签名序列化器的 loads，并传入由应用 permanent_session_lifetime 计算的 max_age；BadSignature 被捕获。",
+            "origin": {
+              "quote": "此处将客户端 session cookie 交给签名序列化器的 loads，并传入由应用 permanent_session_lifetime 计算的 max_age；BadSignature 被捕获。",
+              "start": 5,
+              "end": 106
+            },
+            "node": {
+              "file": "src/flask/sessions.py",
+              "line": 346,
+              "code": "            data = s.loads(val, max_age=max_age)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "337–349 行包含 cookie 读取、max_age 计算、s.loads 和 BadSignature 分支；317–335 行提供 serializer 配置。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/sessions.py",
+        "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L317-L349",
+        "review_range": "317-349",
+        "review_excerpt": "   317 |     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:\n   318 |         if not app.secret_key:\n   319 |             return None\n   320 | \n   321 |         keys: list[str | bytes] = []\n   322 | \n   323 |         if fallbacks := app.config[\"SECRET_KEY_FALLBACKS\"]:\n   324 |             keys.extend(fallbacks)\n   325 | \n   326 |         keys.append(app.secret_key)  # itsdangerous expects current key at top\n   327 |         return URLSafeTimedSerializer(\n   328 |             keys,  # type: ignore[arg-type]\n   329 |             salt=self.salt,\n   330 |             serializer=self.serializer,\n   331 |             signer_kwargs={\n   332 |                 \"key_derivation\": self.key_derivation,\n   333 |                 \"digest_method\": self.digest_method,\n   334 |             },\n   335 |         )\n   336 | \n   337 |     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:\n   338 |         s = self.get_signing_serializer(app)\n   339 |         if s is None:\n   340 |             return None\n   341 |         val = request.cookies.get(self.get_cookie_name(app))\n   342 |         if not val:\n   343 |             return self.session_class()\n   344 |         max_age = int(app.permanent_session_lifetime.total_seconds())\n   345 |         try:\n   346 |             data = s.loads(val, max_age=max_age)\n   347 |             return self.session_class(data)\n   348 |         except BadSignature:\n   349 |             return self.session_class()",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/key-configuration",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h08",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：此处先收集 SECRET_KEY_FALLBACKS，再把当前 app.secret_key 追加到 keys，随后将该列表传入 URLSafeTimedSerializer。\n源码引用 src/flask/sessions.py:326：\n        keys.append(app.secret_key)  # itsdangerous expects current key at top\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "此处先收集 SECRET_KEY_FALLBACKS，再把当前 app.secret_key 追加到 keys，随后将该列表传入 URLSafeTimedSerializer。",
+            "origin": {
+              "quote": "此处先收集 SECRET_KEY_FALLBACKS，再把当前 app.secret_key 追加到 keys，随后将该列表传入 URLSafeTimedSerializer。",
+              "start": 5,
+              "end": 93
+            },
+            "node": {
+              "file": "src/flask/sessions.py",
+              "line": 326,
+              "code": "        keys.append(app.secret_key)  # itsdangerous expects current key at top"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "配置列表的顺序和构造参数可直接从 321–335 行确认；没有声称构造时已验证某个 cookie。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/sessions.py",
+        "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L317-L335",
+        "review_range": "317-335",
+        "review_excerpt": "   317 |     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:\n   318 |         if not app.secret_key:\n   319 |             return None\n   320 | \n   321 |         keys: list[str | bytes] = []\n   322 | \n   323 |         if fallbacks := app.config[\"SECRET_KEY_FALLBACKS\"]:\n   324 |             keys.extend(fallbacks)\n   325 | \n   326 |         keys.append(app.secret_key)  # itsdangerous expects current key at top\n   327 |         return URLSafeTimedSerializer(\n   328 |             keys,  # type: ignore[arg-type]\n   329 |             salt=self.salt,\n   330 |             serializer=self.serializer,\n   331 |             signer_kwargs={\n   332 |                 \"key_derivation\": self.key_derivation,\n   333 |                 \"digest_method\": self.digest_method,\n   334 |             },\n   335 |         )",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/cookie-flags",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h09",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：save_session 在这个 set_cookie 调用中无条件使用 secure=True，不受应用配置影响。\n源码引用 src/flask/sessions.py:395：\n            secure=secure,\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "save_session 在这个 set_cookie 调用中无条件使用 secure=True，不受应用配置影响。",
+            "origin": {
+              "quote": "save_session 在这个 set_cookie 调用中无条件使用 secure=True，不受应用配置影响。",
+              "start": 5,
+              "end": 63
+            },
+            "node": {
+              "file": "src/flask/sessions.py",
+              "line": 395,
+              "code": "            secure=secure,"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "357 行由 get_cookie_secure(app) 取得 secure；对应 getter 220 行读取 SESSION_COOKIE_SECURE，395 行使用该变量而非固定 True。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/sessions.py",
+        "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L351-L399",
+        "review_range": "351-399",
+        "review_excerpt": "   351 |     def save_session(\n   352 |         self, app: Flask, session: SessionMixin, response: Response\n   353 |     ) -> None:\n   354 |         name = self.get_cookie_name(app)\n   355 |         domain = self.get_cookie_domain(app)\n   356 |         path = self.get_cookie_path(app)\n   357 |         secure = self.get_cookie_secure(app)\n   358 |         partitioned = self.get_cookie_partitioned(app)\n   359 |         samesite = self.get_cookie_samesite(app)\n   360 |         httponly = self.get_cookie_httponly(app)\n   361 | \n   362 |         # Add a \"Vary: Cookie\" header if the session was accessed at all.\n   363 |         if session.accessed:\n   364 |             response.vary.add(\"Cookie\")\n   365 | \n   366 |         # If the session is modified to be empty, remove the cookie.\n   367 |         # If the session is empty, return without setting the cookie.\n   368 |         if not session:\n   369 |             if session.modified:\n   370 |                 response.delete_cookie(\n   371 |                     name,\n   372 |                     domain=domain,\n   373 |                     path=path,\n   374 |                     secure=secure,\n   375 |                     partitioned=partitioned,\n   376 |                     samesite=samesite,\n   377 |                     httponly=httponly,\n   378 |                 )\n   379 |                 response.vary.add(\"Cookie\")\n   380 | \n   381 |             return\n   382 | \n   383 |         if not self.should_set_cookie(app, session):\n   384 |             return\n   385 | \n   386 |         expires = self.get_expiration_time(app, session)\n   387 |         val = self.get_signing_serializer(app).dumps(dict(session))  # type: ignore[union-attr]\n   388 |         response.set_cookie(\n   389 |             name,\n   390 |             val,\n   391 |             expires=expires,\n   392 |             httponly=httponly,\n   393 |             domain=domain,\n   394 |             path=path,\n   395 |             secure=secure,\n   396 |             partitioned=partitioned,\n   397 |             samesite=samesite,\n   398 |         )\n   399 |         response.vary.add(\"Cookie\")",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false,
+        "additional_source_references": [
+          {
+            "file": "src/flask/sessions.py",
+            "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+            "range": "215-220",
+            "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L215-L220",
+            "review_excerpt": "   215 | \n   216 |     def get_cookie_secure(self, app: Flask) -> bool:\n   217 |         \"\"\"Returns True if the cookie should be secure.  This currently\n   218 |         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.\n   219 |         \"\"\"\n   220 |         return app.config[\"SESSION_COOKIE_SECURE\"]  # type: ignore[no-any-return]"
+          }
+        ]
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/session-reading",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h10",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：open_session 这里只进行普通 JSON 反序列化，没有通过签名序列化器校验，也没有传入有效期。\n源码引用 src/flask/sessions.py:346：\n            data = s.loads(val, max_age=max_age)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "open_session 这里只进行普通 JSON 反序列化，没有通过签名序列化器校验，也没有传入有效期。",
+            "origin": {
+              "quote": "open_session 这里只进行普通 JSON 反序列化，没有通过签名序列化器校验，也没有传入有效期。",
+              "start": 5,
+              "end": 58
+            },
+            "node": {
+              "file": "src/flask/sessions.py",
+              "line": 346,
+              "code": "            data = s.loads(val, max_age=max_age)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "get_signing_serializer 创建 URLSafeTimedSerializer，346 行 s.loads(val,max_age=max_age)，348 行捕获 BadSignature，反证该局部操作描述。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/sessions.py",
+        "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L317-L349",
+        "review_range": "317-349",
+        "review_excerpt": "   317 |     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:\n   318 |         if not app.secret_key:\n   319 |             return None\n   320 | \n   321 |         keys: list[str | bytes] = []\n   322 | \n   323 |         if fallbacks := app.config[\"SECRET_KEY_FALLBACKS\"]:\n   324 |             keys.extend(fallbacks)\n   325 | \n   326 |         keys.append(app.secret_key)  # itsdangerous expects current key at top\n   327 |         return URLSafeTimedSerializer(\n   328 |             keys,  # type: ignore[arg-type]\n   329 |             salt=self.salt,\n   330 |             serializer=self.serializer,\n   331 |             signer_kwargs={\n   332 |                 \"key_derivation\": self.key_derivation,\n   333 |                 \"digest_method\": self.digest_method,\n   334 |             },\n   335 |         )\n   336 | \n   337 |     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:\n   338 |         s = self.get_signing_serializer(app)\n   339 |         if s is None:\n   340 |             return None\n   341 |         val = request.cookies.get(self.get_cookie_name(app))\n   342 |         if not val:\n   343 |             return self.session_class()\n   344 |         max_age = int(app.permanent_session_lifetime.total_seconds())\n   345 |         try:\n   346 |             data = s.loads(val, max_age=max_age)\n   347 |             return self.session_class(data)\n   348 |         except BadSignature:\n   349 |             return self.session_class()",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/key-configuration",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h11",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：当前线上 app.secret_key 已配置为至少 32 个随机字节，而且旧的泄露密钥不在回退列表中。\n源码引用 src/flask/sessions.py:326：\n        keys.append(app.secret_key)  # itsdangerous expects current key at top\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "当前线上 app.secret_key 已配置为至少 32 个随机字节，而且旧的泄露密钥不在回退列表中。",
+            "origin": {
+              "quote": "当前线上 app.secret_key 已配置为至少 32 个随机字节，而且旧的泄露密钥不在回退列表中。",
+              "start": 5,
+              "end": 57
+            },
+            "node": {
+              "file": "src/flask/sessions.py",
+              "line": 326,
+              "code": "        keys.append(app.secret_key)  # itsdangerous expects current key at top"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "源码读配置而未给出运行时 secret_key 或 fallback 值、生成过程和泄露记录；不能由源码默认机制证明部署密钥质量。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/sessions.py",
+        "source_sha256": "103fce577265d5e9accbb667b5beda156c72a329edf8fccd634785507f92ca8d",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/sessions.py#L317-L335",
+        "review_range": "317-335",
+        "review_excerpt": "   317 |     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:\n   318 |         if not app.secret_key:\n   319 |             return None\n   320 | \n   321 |         keys: list[str | bytes] = []\n   322 | \n   323 |         if fallbacks := app.config[\"SECRET_KEY_FALLBACKS\"]:\n   324 |             keys.extend(fallbacks)\n   325 | \n   326 |         keys.append(app.secret_key)  # itsdangerous expects current key at top\n   327 |         return URLSafeTimedSerializer(\n   328 |             keys,  # type: ignore[arg-type]\n   329 |             salt=self.salt,\n   330 |             serializer=self.serializer,\n   331 |             signer_kwargs={\n   332 |                 \"key_derivation\": self.key_derivation,\n   333 |                 \"digest_method\": self.digest_method,\n   334 |             },\n   335 |         )",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "flask/request-limits",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h12",
+        "repo_url": "https://github.com/pallets/flask",
+        "reviewed_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "report_text": "报告声称：当前生产应用实际将 MAX_FORM_MEMORY_SIZE 配为 50000，并且没有给本请求设置覆盖值。\n源码引用 src/flask/wrappers.py:113：\n        return current_app.config[\"MAX_FORM_MEMORY_SIZE\"]  # type: ignore[no-any-return]\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "当前生产应用实际将 MAX_FORM_MEMORY_SIZE 配为 50000，并且没有给本请求设置覆盖值。",
+            "origin": {
+              "quote": "当前生产应用实际将 MAX_FORM_MEMORY_SIZE 配为 50000，并且没有给本请求设置覆盖值。",
+              "start": 5,
+              "end": 59
+            },
+            "node": {
+              "file": "src/flask/wrappers.py",
+              "line": 113,
+              "code": "        return current_app.config[\"MAX_FORM_MEMORY_SIZE\"]  # type: ignore[no-any-return]"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "getter 可返回请求覆盖值、基类值或当前配置；部署值和该请求实例均未提供，不能用默认值替代实际值。",
+        "source_repository": "pallets/flask",
+        "source_tag": "3.1.1",
+        "source_commit": "7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1",
+        "source_file": "src/flask/wrappers.py",
+        "source_sha256": "8d492fe2655e93622ae21c3177846faab20c6faf41bf43c49438162e6779391a",
+        "source_link": "https://github.com/pallets/flask/blob/7fff56f5172c48b6f3aedf17ee14ef5c2533dfd1/src/flask/wrappers.py#L93-L117",
+        "review_range": "93-117",
+        "review_excerpt": "    93 |     def max_form_memory_size(self) -> int | None:\n    94 |         \"\"\"The maximum size in bytes any non-file form field may be in a\n    95 |         ``multipart/form-data`` body. If this limit is exceeded, a 413\n    96 |         :exc:`~werkzeug.exceptions.RequestEntityTooLarge` error is raised. If it\n    97 |         is set to ``None``, no limit is enforced at the Flask application level.\n    98 | \n    99 |         Each request defaults to the :data:`MAX_FORM_MEMORY_SIZE` config, which\n   100 |         defaults to ``500_000``. It can be set on a specific ``request`` to\n   101 |         apply the limit to that specific view. This should be set appropriately\n   102 |         based on an application's or view's specific needs.\n   103 | \n   104 |         .. versionchanged:: 3.1\n   105 |             This is configurable through Flask config.\n   106 |         \"\"\"\n   107 |         if self._max_form_memory_size is not None:\n   108 |             return self._max_form_memory_size\n   109 | \n   110 |         if not current_app:\n   111 |             return super().max_form_memory_size\n   112 | \n   113 |         return current_app.config[\"MAX_FORM_MEMORY_SIZE\"]  # type: ignore[no-any-return]\n   114 | \n   115 |     @max_form_memory_size.setter\n   116 |     def max_form_memory_size(self, value: int | None) -> None:\n   117 |         self._max_form_memory_size = value",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/static-paths",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h13",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：当 follow_symlink 为 False 时，此处先对文件与目录取 realpath，再用 commonpath 检查候选是否仍处于目录内；不在目录内会 continue。\n源码引用 starlette/staticfiles.py:160：\n            if os.path.commonpath([full_path, directory]) != str(directory):\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "当 follow_symlink 为 False 时，此处先对文件与目录取 realpath，再用 commonpath 检查候选是否仍处于目录内；不在目录内会 continue。",
+            "origin": {
+              "quote": "当 follow_symlink 为 False 时，此处先对文件与目录取 realpath，再用 commonpath 检查候选是否仍处于目录内；不在目录内会 continue。",
+              "start": 5,
+              "end": 95
+            },
+            "node": {
+              "file": "starlette/staticfiles.py",
+              "line": 160,
+              "code": "            if os.path.commonpath([full_path, directory]) != str(directory):"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "151–167 行分支、realpath、commonpath 比较和 continue 均明确；仅声明所见算法，不证明任何部署绝对安全。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/staticfiles.py",
+        "source_sha256": "dde8f9fcaa3112f19e8e8e46a08926b24f6be3726bc824d01336602dc43a6487",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/staticfiles.py#L151-L167",
+        "review_range": "151-167",
+        "review_excerpt": "   151 |     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:\n   152 |         for directory in self.all_directories:\n   153 |             joined_path = os.path.join(directory, path)\n   154 |             if self.follow_symlink:\n   155 |                 full_path = os.path.abspath(joined_path)\n   156 |                 directory = os.path.abspath(directory)\n   157 |             else:\n   158 |                 full_path = os.path.realpath(joined_path)\n   159 |                 directory = os.path.realpath(directory)\n   160 |             if os.path.commonpath([full_path, directory]) != str(directory):\n   161 |                 # Don't allow misbehaving clients to break out of the static files directory.\n   162 |                 continue\n   163 |             try:\n   164 |                 return full_path, os.stat(full_path)\n   165 |             except (FileNotFoundError, NotADirectoryError):\n   166 |                 continue\n   167 |         return \"\", None",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/cors-origin",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h14",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：此处在 allow_origin_regex 存在时使用 fullmatch(origin) 检查整个 origin；成功返回 True，否则再检查 allow_origins 列表。\n源码引用 starlette/middleware/cors.py:99：\n        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "此处在 allow_origin_regex 存在时使用 fullmatch(origin) 检查整个 origin；成功返回 True，否则再检查 allow_origins 列表。",
+            "origin": {
+              "quote": "此处在 allow_origin_regex 存在时使用 fullmatch(origin) 检查整个 origin；成功返回 True，否则再检查 allow_origins 列表。",
+              "start": 5,
+              "end": 97
+            },
+            "node": {
+              "file": "starlette/middleware/cors.py",
+              "line": 99,
+              "code": "        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "95–102 行明示 fullmatch 和 allow_origins 成员判断；未声明 allow_all_origins 当前配置为 False。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/middleware/cors.py",
+        "source_sha256": "1e9d4e0450753906d81916ba85f4f306a9242473a15298ebb11af2ac722d1c54",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/middleware/cors.py#L95-L102",
+        "review_range": "95-102",
+        "review_excerpt": "    95 |     def is_allowed_origin(self, origin: str) -> bool:\n    96 |         if self.allow_all_origins:\n    97 |             return True\n    98 | \n    99 |         if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n   100 |             return True\n   101 | \n   102 |         return origin in self.allow_origins",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/static-paths",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h15",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：lookup_path 这里用字符串 commonprefix 比较前缀作为目录边界，完全没有调用 commonpath。\n源码引用 starlette/staticfiles.py:160：\n            if os.path.commonpath([full_path, directory]) != str(directory):\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "lookup_path 这里用字符串 commonprefix 比较前缀作为目录边界，完全没有调用 commonpath。",
+            "origin": {
+              "quote": "lookup_path 这里用字符串 commonprefix 比较前缀作为目录边界，完全没有调用 commonpath。",
+              "start": 5,
+              "end": 66
+            },
+            "node": {
+              "file": "starlette/staticfiles.py",
+              "line": 160,
+              "code": "            if os.path.commonpath([full_path, directory]) != str(directory):"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "指定源码行直接调用 os.path.commonpath，和所声称 commonprefix 相矛盾。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/staticfiles.py",
+        "source_sha256": "dde8f9fcaa3112f19e8e8e46a08926b24f6be3726bc824d01336602dc43a6487",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/staticfiles.py#L151-L167",
+        "review_range": "151-167",
+        "review_excerpt": "   151 |     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:\n   152 |         for directory in self.all_directories:\n   153 |             joined_path = os.path.join(directory, path)\n   154 |             if self.follow_symlink:\n   155 |                 full_path = os.path.abspath(joined_path)\n   156 |                 directory = os.path.abspath(directory)\n   157 |             else:\n   158 |                 full_path = os.path.realpath(joined_path)\n   159 |                 directory = os.path.realpath(directory)\n   160 |             if os.path.commonpath([full_path, directory]) != str(directory):\n   161 |                 # Don't allow misbehaving clients to break out of the static files directory.\n   162 |                 continue\n   163 |             try:\n   164 |                 return full_path, os.stat(full_path)\n   165 |             except (FileNotFoundError, NotADirectoryError):\n   166 |                 continue\n   167 |         return \"\", None",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/cors-origin",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h16",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。\n源码引用 starlette/middleware/cors.py:99：\n        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。",
+            "origin": {
+              "quote": "这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。",
+              "start": 5,
+              "end": 43
+            },
+            "node": {
+              "file": "starlette/middleware/cors.py",
+              "line": 99,
+              "code": "        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "99 行使用 fullmatch(origin)，不是 search；局部匹配方式的描述错误。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/middleware/cors.py",
+        "source_sha256": "1e9d4e0450753906d81916ba85f4f306a9242473a15298ebb11af2ac722d1c54",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/middleware/cors.py#L95-L102",
+        "review_range": "95-102",
+        "review_excerpt": "    95 |     def is_allowed_origin(self, origin: str) -> bool:\n    96 |         if self.allow_all_origins:\n    97 |             return True\n    98 | \n    99 |         if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n   100 |             return True\n   101 | \n   102 |         return origin in self.allow_origins",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/cors-origin",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h17",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：当前生产实例的 allow_all_origins 为 False，且 allow_origins 只含两个经过人工批准的域名。\n源码引用 starlette/middleware/cors.py:96：\n        if self.allow_all_origins:\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "当前生产实例的 allow_all_origins 为 False，且 allow_origins 只含两个经过人工批准的域名。",
+            "origin": {
+              "quote": "当前生产实例的 allow_all_origins 为 False，且 allow_origins 只含两个经过人工批准的域名。",
+              "start": 5,
+              "end": 69
+            },
+            "node": {
+              "file": "starlette/middleware/cors.py",
+              "line": 96,
+              "code": "        if self.allow_all_origins:"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "只有配置消费逻辑，没有生产构造参数或实例状态，无法确定布尔值、列表长度与批准流程。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/middleware/cors.py",
+        "source_sha256": "1e9d4e0450753906d81916ba85f4f306a9242473a15298ebb11af2ac722d1c54",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/middleware/cors.py#L95-L102",
+        "review_range": "95-102",
+        "review_excerpt": "    95 |     def is_allowed_origin(self, origin: str) -> bool:\n    96 |         if self.allow_all_origins:\n    97 |             return True\n    98 | \n    99 |         if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n   100 |             return True\n   101 | \n   102 |         return origin in self.allow_origins",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "starlette/static-paths",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h18",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：生产路由在调用 StaticFiles 之前已通过另一层中间件验证账号与文件访问权限，所以未授权请求无法到达这一行。\n源码引用 starlette/staticfiles.py:164：\n                return full_path, os.stat(full_path)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "生产路由在调用 StaticFiles 之前已通过另一层中间件验证账号与文件访问权限，所以未授权请求无法到达这一行。",
+            "origin": {
+              "quote": "生产路由在调用 StaticFiles 之前已通过另一层中间件验证账号与文件访问权限，所以未授权请求无法到达这一行。",
+              "start": 5,
+              "end": 63
+            },
+            "node": {
+              "file": "starlette/staticfiles.py",
+              "line": 164,
+              "code": "                return full_path, os.stat(full_path)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "文件路径查找不提供外层应用路由和认证中间件；没有鉴权证据不能反推外层完全没有鉴权。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/staticfiles.py",
+        "source_sha256": "dde8f9fcaa3112f19e8e8e46a08926b24f6be3726bc824d01336602dc43a6487",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/staticfiles.py#L151-L167",
+        "review_range": "151-167",
+        "review_excerpt": "   151 |     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:\n   152 |         for directory in self.all_directories:\n   153 |             joined_path = os.path.join(directory, path)\n   154 |             if self.follow_symlink:\n   155 |                 full_path = os.path.abspath(joined_path)\n   156 |                 directory = os.path.abspath(directory)\n   157 |             else:\n   158 |                 full_path = os.path.realpath(joined_path)\n   159 |                 directory = os.path.realpath(directory)\n   160 |             if os.path.commonpath([full_path, directory]) != str(directory):\n   161 |                 # Don't allow misbehaving clients to break out of the static files directory.\n   162 |                 continue\n   163 |             try:\n   164 |                 return full_path, os.stat(full_path)\n   165 |             except (FileNotFoundError, NotADirectoryError):\n   166 |                 continue\n   167 |         return \"\", None",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/bearer-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h19",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：OAuth2PasswordBearer 在这里从 Authorization 请求头接收输入，经 get_authorization_scheme_param 拆分并检查 bearer scheme，最终返回 param。\n源码引用 fastapi/security/oauth2.py:489：\n        authorization = request.headers.get(\"Authorization\")\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "OAuth2PasswordBearer 在这里从 Authorization 请求头接收输入，经 get_authorization_scheme_param 拆分并检查 bearer scheme，最终返回 param。",
+            "origin": {
+              "quote": "OAuth2PasswordBearer 在这里从 Authorization 请求头接收输入，经 get_authorization_scheme_param 拆分并检查 bearer scheme，最终返回 param。",
+              "start": 5,
+              "end": 117
+            },
+            "node": {
+              "file": "fastapi/security/oauth2.py",
+              "line": 489,
+              "code": "        authorization = request.headers.get(\"Authorization\")"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "488–500 行完整展示输入读取、scheme 检查和返回；不声称 param 已经过 JWT 或账号授权校验。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/oauth2.py",
+        "source_sha256": "3350052034fb1b7a100a1abcde9a08dde83c6437a26dcbe71a6c9ad824d2ec96",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/oauth2.py#L488-L500",
+        "review_range": "488-500",
+        "review_excerpt": "   488 |     async def __call__(self, request: Request) -> Optional[str]:\n   489 |         authorization = request.headers.get(\"Authorization\")\n   490 |         scheme, param = get_authorization_scheme_param(authorization)\n   491 |         if not authorization or scheme.lower() != \"bearer\":\n   492 |             if self.auto_error:\n   493 |                 raise HTTPException(\n   494 |                     status_code=HTTP_401_UNAUTHORIZED,\n   495 |                     detail=\"Not authenticated\",\n   496 |                     headers={\"WWW-Authenticate\": \"Bearer\"},\n   497 |                 )\n   498 |             else:\n   499 |                 return None\n   500 |         return param",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false,
+        "additional_source_references": [
+          {
+            "file": "fastapi/security/utils.py",
+            "source_sha256": "6ddf13d1833b5100f90132ae72bd5b36d02fcff637fff755340bf951e6e23ef7",
+            "range": "1-10",
+            "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/utils.py#L1-L10",
+            "review_excerpt": "     1 | from typing import Optional, Tuple\n     2 | \n     3 | \n     4 | def get_authorization_scheme_param(\n     5 |     authorization_header_value: Optional[str],\n     6 | ) -> Tuple[str, str]:\n     7 |     if not authorization_header_value:\n     8 |         return \"\", \"\"\n     9 |     scheme, _, param = authorization_header_value.partition(\" \")\n    10 |     return scheme, param"
+          }
+        ]
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/basic-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h20",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：HTTPBasic 在此把 param 做 Base64 解码并按 ASCII 读取，再以冒号分离 username 和 password；解码失败或缺冒号时抛出认证错误。\n源码引用 fastapi/security/http.py:211：\n            data = b64decode(param).decode(\"ascii\")\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "HTTPBasic 在此把 param 做 Base64 解码并按 ASCII 读取，再以冒号分离 username 和 password；解码失败或缺冒号时抛出认证错误。",
+            "origin": {
+              "quote": "HTTPBasic 在此把 param 做 Base64 解码并按 ASCII 读取，再以冒号分离 username 和 password；解码失败或缺冒号时抛出认证错误。",
+              "start": 5,
+              "end": 91
+            },
+            "node": {
+              "file": "fastapi/security/http.py",
+              "line": 211,
+              "code": "            data = b64decode(param).decode(\"ascii\")"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "205–217 行明确解码、异常捕获、partition(':') 和缺分隔符错误；不声称核验账号密码真实性。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/http.py",
+        "source_sha256": "ad6476c7ee4252c8d6991b9c62d87046283a306d68f9ba32aebe17a3e3eebb15",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/http.py#L187-L217",
+        "review_range": "187-217",
+        "review_excerpt": "   187 |     async def __call__(  # type: ignore\n   188 |         self, request: Request\n   189 |     ) -> Optional[HTTPBasicCredentials]:\n   190 |         authorization = request.headers.get(\"Authorization\")\n   191 |         scheme, param = get_authorization_scheme_param(authorization)\n   192 |         if self.realm:\n   193 |             unauthorized_headers = {\"WWW-Authenticate\": f'Basic realm=\"{self.realm}\"'}\n   194 |         else:\n   195 |             unauthorized_headers = {\"WWW-Authenticate\": \"Basic\"}\n   196 |         if not authorization or scheme.lower() != \"basic\":\n   197 |             if self.auto_error:\n   198 |                 raise HTTPException(\n   199 |                     status_code=HTTP_401_UNAUTHORIZED,\n   200 |                     detail=\"Not authenticated\",\n   201 |                     headers=unauthorized_headers,\n   202 |                 )\n   203 |             else:\n   204 |                 return None\n   205 |         invalid_user_credentials_exc = HTTPException(\n   206 |             status_code=HTTP_401_UNAUTHORIZED,\n   207 |             detail=\"Invalid authentication credentials\",\n   208 |             headers=unauthorized_headers,\n   209 |         )\n   210 |         try:\n   211 |             data = b64decode(param).decode(\"ascii\")\n   212 |         except (ValueError, UnicodeDecodeError, binascii.Error):\n   213 |             raise invalid_user_credentials_exc  # noqa: B904\n   214 |         username, separator, password = data.partition(\":\")\n   215 |         if not separator:\n   216 |             raise invalid_user_credentials_exc\n   217 |         return HTTPBasicCredentials(username=username, password=password)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/bearer-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h21",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：OAuth2PasswordBearer 的这个 __call__ 在返回 param 前调用 JWT 签名、exp 和 issuer 校验，只有通过这些校验的 token 才会返回。\n源码引用 fastapi/security/oauth2.py:500：\n        return param\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "OAuth2PasswordBearer 的这个 __call__ 在返回 param 前调用 JWT 签名、exp 和 issuer 校验，只有通过这些校验的 token 才会返回。",
+            "origin": {
+              "quote": "OAuth2PasswordBearer 的这个 __call__ 在返回 param 前调用 JWT 签名、exp 和 issuer 校验，只有通过这些校验的 token 才会返回。",
+              "start": 5,
+              "end": 97
+            },
+            "node": {
+              "file": "fastapi/security/oauth2.py",
+              "line": 500,
+              "code": "        return param"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "488–500 行只有头读取、字符串拆分和 scheme 检查后返回；helper 仅做头字段拆分，没有 JWT 校验调用。结论限该函数，外层依赖另论。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/oauth2.py",
+        "source_sha256": "3350052034fb1b7a100a1abcde9a08dde83c6437a26dcbe71a6c9ad824d2ec96",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/oauth2.py#L488-L500",
+        "review_range": "488-500",
+        "review_excerpt": "   488 |     async def __call__(self, request: Request) -> Optional[str]:\n   489 |         authorization = request.headers.get(\"Authorization\")\n   490 |         scheme, param = get_authorization_scheme_param(authorization)\n   491 |         if not authorization or scheme.lower() != \"bearer\":\n   492 |             if self.auto_error:\n   493 |                 raise HTTPException(\n   494 |                     status_code=HTTP_401_UNAUTHORIZED,\n   495 |                     detail=\"Not authenticated\",\n   496 |                     headers={\"WWW-Authenticate\": \"Bearer\"},\n   497 |                 )\n   498 |             else:\n   499 |                 return None\n   500 |         return param",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false,
+        "additional_source_references": [
+          {
+            "file": "fastapi/security/utils.py",
+            "source_sha256": "6ddf13d1833b5100f90132ae72bd5b36d02fcff637fff755340bf951e6e23ef7",
+            "range": "1-10",
+            "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/utils.py#L1-L10",
+            "review_excerpt": "     1 | from typing import Optional, Tuple\n     2 | \n     3 | \n     4 | def get_authorization_scheme_param(\n     5 |     authorization_header_value: Optional[str],\n     6 | ) -> Tuple[str, str]:\n     7 |     if not authorization_header_value:\n     8 |         return \"\", \"\"\n     9 |     scheme, _, param = authorization_header_value.partition(\" \")\n    10 |     return scheme, param"
+          }
+        ]
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/api-key-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h22",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：APIKeyHeader 的 __call__ 在这里把头字段提交给数据库或身份中心校验访问权限，再返回通过校验的 API key。\n源码引用 fastapi/security/api_key.py:200：\n        return self.check_api_key(api_key, self.auto_error)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "APIKeyHeader 的 __call__ 在这里把头字段提交给数据库或身份中心校验访问权限，再返回通过校验的 API key。",
+            "origin": {
+              "quote": "APIKeyHeader 的 __call__ 在这里把头字段提交给数据库或身份中心校验访问权限，再返回通过校验的 API key。",
+              "start": 5,
+              "end": 71
+            },
+            "node": {
+              "file": "fastapi/security/api_key.py",
+              "line": 200,
+              "code": "        return self.check_api_key(api_key, self.auto_error)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "198–200 行读取头值后交给 check_api_key；13–20 行该 helper 仅检查有无值并按 auto_error 抛错或返回，没有数据库/身份中心调用。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/api_key.py",
+        "source_sha256": "701239678cd65632f5b89aec8d378bcbb31a7c73c03b61d03f34eba72a086160",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/api_key.py#L13-L20",
+        "review_range": "13-20",
+        "review_excerpt": "    13 |     def check_api_key(api_key: Optional[str], auto_error: bool) -> Optional[str]:\n    14 |         if not api_key:\n    15 |             if auto_error:\n    16 |                 raise HTTPException(\n    17 |                     status_code=HTTP_403_FORBIDDEN, detail=\"Not authenticated\"\n    18 |                 )\n    19 |             return None\n    20 |         return api_key",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false,
+        "additional_source_references": [
+          {
+            "file": "fastapi/security/api_key.py",
+            "source_sha256": "701239678cd65632f5b89aec8d378bcbb31a7c73c03b61d03f34eba72a086160",
+            "range": "198-200",
+            "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/api_key.py#L198-L200",
+            "review_excerpt": "   198 |     async def __call__(self, request: Request) -> Optional[str]:\n   199 |         api_key = request.headers.get(self.model.name)\n   200 |         return self.check_api_key(api_key, self.auto_error)"
+          }
+        ]
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/bearer-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h23",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：本应用的上层依赖会在取得 param 后验证 JWT 签名、撤销状态和用户资源权限，因此整个请求链已完成这些检查。\n源码引用 fastapi/security/oauth2.py:500：\n        return param\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "本应用的上层依赖会在取得 param 后验证 JWT 签名、撤销状态和用户资源权限，因此整个请求链已完成这些检查。",
+            "origin": {
+              "quote": "本应用的上层依赖会在取得 param 后验证 JWT 签名、撤销状态和用户资源权限，因此整个请求链已完成这些检查。",
+              "start": 5,
+              "end": 62
+            },
+            "node": {
+              "file": "fastapi/security/oauth2.py",
+              "line": 500,
+              "code": "        return param"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "库函数的返回值不能证明某应用的上层依赖实现。应用依赖、配置和完整请求链未提供。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/oauth2.py",
+        "source_sha256": "3350052034fb1b7a100a1abcde9a08dde83c6437a26dcbe71a6c9ad824d2ec96",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/oauth2.py#L488-L500",
+        "review_range": "488-500",
+        "review_excerpt": "   488 |     async def __call__(self, request: Request) -> Optional[str]:\n   489 |         authorization = request.headers.get(\"Authorization\")\n   490 |         scheme, param = get_authorization_scheme_param(authorization)\n   491 |         if not authorization or scheme.lower() != \"bearer\":\n   492 |             if self.auto_error:\n   493 |                 raise HTTPException(\n   494 |                     status_code=HTTP_401_UNAUTHORIZED,\n   495 |                     detail=\"Not authenticated\",\n   496 |                     headers={\"WWW-Authenticate\": \"Bearer\"},\n   497 |                 )\n   498 |             else:\n   499 |                 return None\n   500 |         return param",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "family": "fastapi/api-key-input",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h24",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "report_text": "报告声称：当前应用创建 APIKeyHeader 时设置 auto_error=False，并在返回 None 后必定使用另一种身份认证方式兜底。\n源码引用 fastapi/security/api_key.py:200：\n        return self.check_api_key(api_key, self.auto_error)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "entry_point",
+            "text": "当前应用创建 APIKeyHeader 时设置 auto_error=False，并在返回 None 后必定使用另一种身份认证方式兜底。",
+            "origin": {
+              "quote": "当前应用创建 APIKeyHeader 时设置 auto_error=False，并在返回 None 后必定使用另一种身份认证方式兜底。",
+              "start": 5,
+              "end": 73
+            },
+            "node": {
+              "file": "fastapi/security/api_key.py",
+              "line": 200,
+              "code": "        return self.check_api_key(api_key, self.auto_error)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "库函数只消费 auto_error，没有应用构造参数和依赖组合，不能确定该实例配置和兜底认证。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/api_key.py",
+        "source_sha256": "701239678cd65632f5b89aec8d378bcbb31a7c73c03b61d03f34eba72a086160",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/api_key.py#L198-L200",
+        "review_range": "198-200",
+        "review_excerpt": "   198 |     async def __call__(self, request: Request) -> Optional[str]:\n   199 |         api_key = request.headers.get(self.model.name)\n   200 |         return self.check_api_key(api_key, self.auto_error)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "family": "werkzeug/literal-control",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h25",
+        "repo_url": "https://github.com/pallets/werkzeug",
+        "reviewed_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "report_text": "报告声称：引用片段与所列版本、文件和行号一致。\n源码引用 src/werkzeug/security.py:131：\n    return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用片段与所列版本、文件和行号一致。",
+            "origin": {
+              "quote": "引用片段与所列版本、文件和行号一致。",
+              "start": 5,
+              "end": 23
+            },
+            "node": {
+              "file": "src/werkzeug/security.py",
+              "line": 131,
+              "code": "    return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "固定 Git 对象和指定行可读，原始代码逐字符一致。",
+        "source_repository": "pallets/werkzeug",
+        "source_tag": "3.1.3",
+        "source_commit": "6389612fd1ee1bd93579eed5026e8fd471d04abd",
+        "source_file": "src/werkzeug/security.py",
+        "source_sha256": "59cb67804047068f1efa05dfea5314461b35b74b66123263058662d8c5e85acb",
+        "source_link": "https://github.com/pallets/werkzeug/blob/6389612fd1ee1bd93579eed5026e8fd471d04abd/src/werkzeug/security.py#L126-L131",
+        "review_range": "126-131",
+        "review_excerpt": "   126 |     try:\n   127 |         method, salt, hashval = pwhash.split(\"$\", 2)\n   128 |     except ValueError:\n   129 |         return False\n   130 | \n   131 |     return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "family": "starlette/literal-control",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h26",
+        "repo_url": "https://github.com/encode/starlette",
+        "reviewed_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "report_text": "报告声称：引用片段与所列版本、文件和行号一致。\n源码引用 starlette/staticfiles.py:160：\n            if os.path.commonprefix([full_path, directory]) != str(directory):\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用片段与所列版本、文件和行号一致。",
+            "origin": {
+              "quote": "引用片段与所列版本、文件和行号一致。",
+              "start": 5,
+              "end": 23
+            },
+            "node": {
+              "file": "starlette/staticfiles.py",
+              "line": 160,
+              "code": "            if os.path.commonprefix([full_path, directory]) != str(directory):"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "控制项故意将 commonpath 改成 commonprefix；指定行真实代码不匹配。",
+        "source_repository": "encode/starlette",
+        "source_tag": "0.47.2",
+        "source_commit": "6ee94f2cac955eeae68d2898a8dec8cf17b48736",
+        "source_file": "starlette/staticfiles.py",
+        "source_sha256": "dde8f9fcaa3112f19e8e8e46a08926b24f6be3726bc824d01336602dc43a6487",
+        "source_link": "https://github.com/encode/starlette/blob/6ee94f2cac955eeae68d2898a8dec8cf17b48736/starlette/staticfiles.py#L151-L167",
+        "review_range": "151-167",
+        "review_excerpt": "   151 |     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:\n   152 |         for directory in self.all_directories:\n   153 |             joined_path = os.path.join(directory, path)\n   154 |             if self.follow_symlink:\n   155 |                 full_path = os.path.abspath(joined_path)\n   156 |                 directory = os.path.abspath(directory)\n   157 |             else:\n   158 |                 full_path = os.path.realpath(joined_path)\n   159 |                 directory = os.path.realpath(directory)\n   160 |             if os.path.commonpath([full_path, directory]) != str(directory):\n   161 |                 # Don't allow misbehaving clients to break out of the static files directory.\n   162 |                 continue\n   163 |             try:\n   164 |                 return full_path, os.stat(full_path)\n   165 |             except (FileNotFoundError, NotADirectoryError):\n   166 |                 continue\n   167 |         return \"\", None",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "family": "fastapi/missing-version-control",
+      "authorship": "agent-authored source-grounded draft; not a naturally submitted vulnerability report",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "h27",
+        "repo_url": "https://github.com/fastapi/fastapi",
+        "reviewed_commit": "0000000000000000000000000000000000000000",
+        "report_text": "报告声称：引用片段与所列版本、文件和行号一致。\n源码引用 fastapi/security/oauth2.py:500：\n        return param\n",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用片段与所列版本、文件和行号一致。",
+            "origin": {
+              "quote": "引用片段与所列版本、文件和行号一致。",
+              "start": 5,
+              "end": 23
+            },
+            "node": {
+              "file": "fastapi/security/oauth2.py",
+              "line": 500,
+              "code": "        return param"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "控制项指定不存在的全零 Git 对象，不能用真实 tag 的同名文件代替该版本。",
+        "source_repository": "fastapi/fastapi",
+        "source_tag": "0.116.1",
+        "source_commit": "313723494be79d4b24ccaa60e4f6d1f96c150fed",
+        "source_file": "fastapi/security/oauth2.py",
+        "source_sha256": "3350052034fb1b7a100a1abcde9a08dde83c6437a26dcbe71a6c9ad824d2ec96",
+        "source_link": "https://github.com/fastapi/fastapi/blob/313723494be79d4b24ccaa60e4f6d1f96c150fed/fastapi/security/oauth2.py#L488-L500",
+        "review_range": "488-500",
+        "review_excerpt": "   488 |     async def __call__(self, request: Request) -> Optional[str]:\n   489 |         authorization = request.headers.get(\"Authorization\")\n   490 |         scheme, param = get_authorization_scheme_param(authorization)\n   491 |         if not authorization or scheme.lower() != \"bearer\":\n   492 |             if self.auto_error:\n   493 |                 raise HTTPException(\n   494 |                     status_code=HTTP_401_UNAUTHORIZED,\n   495 |                     detail=\"Not authenticated\",\n   496 |                     headers={\"WWW-Authenticate\": \"Bearer\"},\n   497 |                 )\n   498 |             else:\n   499 |                 return None\n   500 |         return param",
+        "reviewer": "development agent; independent human reference review pending",
+        "deployment_state_provided": false
+      }
+    }
+  ],
+  "assumptions": [
+    "Local behavior claims refer to the fixed stock library implementation, without runtime monkeypatching or subclass overrides.",
+    "Deployment/caller state is not supplied; related uncertain references do not assert that such checks are absent."
+  ]
+}

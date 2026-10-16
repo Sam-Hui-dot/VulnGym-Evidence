@@ -1,0 +1,46 @@
+{
+  "name": "final-smoke-v1",
+  "purpose": "Current Packet 0.9.0 end-to-end acceptance smoke test; not a hidden-set accuracy benchmark or independent expert Gold.",
+  "reference_policy": "AI-assisted review against the public advisory, candidate source, and inspected patch. References are evidence-reviewed labels, not official hidden-test truth or independent expert Gold.",
+  "selection_status": "frozen_before_model_run",
+  "cases": [
+    {
+      "entry_id": "entry-00401",
+      "project": "open-webui",
+      "report_id": "GHSA-7429-HXCV-268M",
+      "reason": "Object-level authorization failure and sensitive configuration disclosure.",
+      "review": {
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "basis": "The candidate source contains the unguarded valve read; the inspected child merge adds owner/access-grant checks before returning valves."
+      }
+    },
+    {
+      "entry_id": "entry-00448",
+      "project": "paperclip",
+      "report_id": "GHSA-47WQ-CJ9Q-WPMP",
+      "reason": "Adversarial real-record control: the record claims a missing tenant check, but its own candidate source already calls getAccessibleAgent, which calls assertCompanyAccess.",
+      "review": {
+        "labels": {"entry_point": "incorrect", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "incorrect", "trace": "incorrect"},
+        "basis": "At candidate commit 549ef11, /agents/:id/keys already calls getAccessibleAgent before listKeys; getAccessibleAgent resolves the agent and enforces assertCompanyAccess. The selected direct child leaves that endpoint guard unchanged."
+      }
+    },
+    {
+      "entry_id": "entry-00489",
+      "project": "FlowiseAI/Flowise",
+      "report_id": "GHSA-3PRP-9GF7-4RXX",
+      "reason": "Mass assignment enabling cross-workspace object overwrite.",
+      "review": {
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "basis": "The candidate uses Object.assign on the request body before repository.save; the inspected fix replaces it with an allowlist and enforces the workspace ID server-side."
+      }
+    }
+  ],
+  "run_settings": {
+    "provider_config": "configs/provider.qwen.json",
+    "model": "qwen3.8-flash",
+    "enable_thinking": false,
+    "critic_policy": "review-risk",
+    "maximum_cases": 3,
+    "maximum_total_api_calls": 6
+  }
+}

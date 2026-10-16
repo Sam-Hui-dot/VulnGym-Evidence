@@ -1,0 +1,292 @@
+{
+  "evaluation_id": "blind-v3",
+  "selection_status": "frozen",
+  "selection_date": "2026-08-30",
+  "reference_ref": "v0.1.4",
+  "semantic_behavior_base_commit": "231aec9dba5daee5e7aa589e208f586ced747092",
+  "freeze_commit_status": "reviewed selection and behavior are frozen; tracked manifests must be committed before the first model run",
+  "frozen_versions": {
+    "evidence_packet": "0.6.0",
+    "workflow": "0.1.0",
+    "judge_prompt": "1.2.0",
+    "critic_prompt": "1.2.0"
+  },
+  "policy": {
+    "purpose": "entry-and-report-isolated evaluation after Blind v2 failure-driven hardening",
+    "not_official_hidden_test": true,
+    "repository_isolation": false,
+    "repository_isolation_reason": "VulnGym v0.1.4 contains 23 upstream repositories and all 23 were already touched by prior development or Blind v2",
+    "entry_and_report_isolation": true,
+    "review_before_model_run": true,
+    "no_tuning_on_results": true,
+    "failure_policy": "retain failures in blind-v3; later behavior changes require a separately frozen benchmark",
+    "reference_scope": "dataset-derived labels reviewed against published version differences, fixed source, advisory and patch evidence before any prediction"
+  },
+  "excluded_development_entry_ids": [
+    "entry-00058",
+    "entry-00062",
+    "entry-00065",
+    "entry-00066",
+    "entry-00074",
+    "entry-00080",
+    "entry-00082",
+    "entry-00084",
+    "entry-00087",
+    "entry-00097",
+    "entry-00107",
+    "entry-00114",
+    "entry-00119",
+    "entry-00121",
+    "entry-00146",
+    "entry-00153",
+    "entry-00311",
+    "entry-00314",
+    "entry-00319",
+    "entry-00320",
+    "entry-00334",
+    "entry-00341",
+    "entry-00383",
+    "entry-00389",
+    "entry-00394",
+    "entry-00419",
+    "entry-00430",
+    "entry-00437",
+    "entry-00462",
+    "entry-00507"
+  ],
+  "excluded_development_report_ids": [
+    "GHSA-265W-RF2W-CJH4",
+    "GHSA-345P-7CG4-V4C7",
+    "GHSA-58JC-RCG5-95F3",
+    "GHSA-5H2M-4Q8J-PQPJ",
+    "GHSA-69FQ-XP46-6X23",
+    "GHSA-6QV9-48XG-FC7F",
+    "GHSA-75HX-XJ24-MQRW",
+    "GHSA-78H3-63C4-5FQC",
+    "GHSA-7PPG-37FH-VCR6",
+    "GHSA-8X34-9Q3V-H7G8",
+    "GHSA-9379-MWVR-7WXX",
+    "GHSA-9G95-QF3F-GGRW",
+    "GHSA-C6XV-RCVW-V685",
+    "GHSA-F6MR-38G8-39RG",
+    "GHSA-FJH6-8679-9PCH",
+    "GHSA-H3F9-MJWJ-W476",
+    "GHSA-JJHC-V7C2-5HH6",
+    "GHSA-JM6W-M3J8-898G",
+    "GHSA-M4JW-WGMF-889X",
+    "GHSA-MHJQ-8C7M-3F7P",
+    "GHSA-Q56X-G2FJ-4RJ6",
+    "GHSA-R277-3XC5-C79V",
+    "GHSA-RG7C-G689-FR3X",
+    "GHSA-RV39-79C4-7459",
+    "GHSA-RVHJ-8CHJ-8V3C",
+    "GHSA-V4PR-FM98-W9PG",
+    "GHSA-V98V-FF95-F3CP",
+    "GHSA-VV7Q-7JX5-F767",
+    "GHSA-XP9R-PRPG-373R"
+  ],
+  "previously_seen_repositories": [
+    "https://github.com/apache/airflow",
+    "https://github.com/aquasecurity/trivy",
+    "https://github.com/BerriAI/litellm",
+    "https://github.com/czlonkowski/n8n-mcp",
+    "https://github.com/FlowiseAI/Flowise",
+    "https://github.com/google/adk-python",
+    "https://github.com/jlowin/fastmcp",
+    "https://github.com/langchain-ai/langchain",
+    "https://github.com/langflow-ai/langflow",
+    "https://github.com/milvus-io/milvus",
+    "https://github.com/mlflow/mlflow",
+    "https://github.com/modelcontextprotocol/typescript-sdk",
+    "https://github.com/n8n-io/n8n",
+    "https://github.com/nltk/nltk",
+    "https://github.com/NVIDIA/NeMo",
+    "https://github.com/ollama/ollama",
+    "https://github.com/onnx/onnx",
+    "https://github.com/open-webui/open-webui",
+    "https://github.com/openclaw/openclaw",
+    "https://github.com/paperclipai/paperclip",
+    "https://github.com/PrefectHQ/fastmcp",
+    "https://github.com/Significant-Gravitas/AutoGPT",
+    "https://github.com/Tencent/WeKnora"
+  ],
+  "cases": [
+    {
+      "case_id": "blind-v3-history-entry-00464",
+      "kind": "history_revision",
+      "entry_id": "entry-00464",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["critical_operation.line", "trace"],
+      "focus": "Airflow command-injection critical location and path revision",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "incorrect", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "Source and fix diff support the chain; line-range and description additions do not invalidate the older sink or trace. The title claims CVE-2025-54550 while vuln_ids is empty, so the identifier field is incorrect."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00102",
+      "kind": "history_revision",
+      "entry_id": "entry-00102",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.file", "entry_point.line", "entry_point.code", "trace"],
+      "focus": "MLflow local race entry moved across file and code",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "spark_udf is a valid upstream entry into get_or_create_nfs_tmp_dir; the older trace preserves the runtime order into chmod(0o777). The v0.1.4 rewrite is more focused, not proof that the earlier chain is false."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00335",
+      "kind": "history_revision",
+      "entry_id": "entry-00335",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.code", "critical_operation.code", "trace"],
+      "focus": "NeMo unsafe deserialization entry, sink and trace revision",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The historical and current locations are identical; changes are indentation, descriptions, and an added function-signature node. Source plus the reviewed advisory support unsafe torch.load deserialization at the candidate commit."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00122",
+      "kind": "history_revision",
+      "entry_id": "entry-00122",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.line", "entry_point.code", "critical_operation.code", "trace"],
+      "focus": "OpenClaw arbitrary-file-write chain revision",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "incorrect", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "An import statement is not the external or stored-data entry to the arbitrary-write chain. The older trace still forms a valid chat.inject to resolveTranscriptPath to SessionManager.open path, and the fixed commit confirms the sink."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00438",
+      "kind": "history_revision",
+      "entry_id": "entry-00438",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.code", "trace"],
+      "focus": "Paperclip unauthenticated API entry and trace revision",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "incorrect", "vuln_category_l2": "incorrect", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"},
+        "notes": {"basis": "The advisory and fix add assertAuthenticated, so this is missing authentication rather than missing authorization. The route and response location are usable, but two historical trace nodes use invalid line 0 locations."}
+      }
+    },
+    {
+      "case_id": "blind-v3-clean-entry-00061",
+      "kind": "clean",
+      "entry_id": "entry-00061",
+      "expected_changed_fields": [],
+      "focus": "Flowise verified account-takeover record",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The GitHub-reviewed advisory points to the same account UI path; source, UI data flow, affected version, and remediation change support all eight fields."}
+      }
+    },
+    {
+      "case_id": "blind-v3-clean-entry-00071",
+      "kind": "clean",
+      "entry_id": "entry-00071",
+      "expected_changed_fields": [],
+      "focus": "Langflow verified unauthenticated monitor API record",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "incorrect", "vuln_category_l2": "incorrect", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The fix adds get_current_active_user and the advisory describes missing authentication. The candidate's business-logic/missing-authorization taxonomy is therefore a semantic mismatch; source locations and chain remain valid."}
+      }
+    },
+    {
+      "case_id": "blind-v3-clean-entry-00090",
+      "kind": "clean",
+      "entry_id": "entry-00090",
+      "expected_changed_fields": [],
+      "focus": "n8n verified sandbox file-access record",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "uncertain", "vuln_category_l2": "uncertain", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The reviewed advisory and vulnerable source support the legacy Code-node helper exposure. Classifying it as AI/Agent capability bypass versus sandbox escape or privilege-management is non-unique, so both taxonomy levels are uncertain."}
+      }
+    },
+    {
+      "case_id": "blind-v3-clean-entry-00057",
+      "kind": "clean",
+      "entry_id": "entry-00057",
+      "expected_changed_fields": [],
+      "focus": "Open WebUI verified stored XSS record",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The source chain terminates at innerHTML, and the one-commit remediation adds DOMPurify at that exact flow. Advisory identifiers, title, categories, and vulnerable commit all align."}
+      }
+    },
+    {
+      "case_id": "blind-v3-clean-entry-00271",
+      "kind": "clean",
+      "entry_id": "entry-00271",
+      "expected_changed_fields": [],
+      "focus": "WeKnora verified tenant authorization record",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"},
+        "notes": {"basis": "The GitHub-reviewed advisory names the same tenant route and missing ownership checks; the candidate commit is contained by affected tag v0.3.1 and the source chain reaches GetTenantByID without authorization."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00410",
+      "kind": "history_revision",
+      "entry_id": "entry-00410",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.line", "entry_point.code", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "OpenClaw remote-FS TOCTOU chain with invalid historical locations",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "incorrect", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"},
+        "notes": {"basis": "The historical source and sink use line 0 and every trace node is unlocatable. The advisory, taxonomy, identifiers, title, and affected commit still align with the TOCTOU readFile sandbox escape."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00352",
+      "kind": "history_revision",
+      "entry_id": "entry-00352",
+      "candidate_ref": "v0.1.1",
+      "expected_changed_fields": ["entry_point.file", "entry_point.line", "entry_point.code", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "n8n Task Runner memory disclosure with stale entry and unlocatable sink",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "uncertain", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"},
+        "notes": {"basis": "The older Code-node branch is a plausible upstream entry, so its role is uncertain rather than false. The sink and all historical trace nodes use line 0, and the trace stops before runInContext activates the exposed native Buffer."}
+      }
+    },
+    {
+      "case_id": "blind-v3-history-entry-00064",
+      "kind": "history_revision",
+      "entry_id": "entry-00064",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": ["entry_point.file", "entry_point.line", "entry_point.code", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "Flowise unprotected registration chain with historical line-zero evidence",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "evidence triangulation",
+        "labels": {"entry_point": "correct", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"},
+        "notes": {"basis": "The /register route is a valid external entry even though v0.1.4 chose the parent router. The historical sink has line 0 and most trace steps are unlocatable; advisory, category, identifier, title, and vulnerable commit remain supported."}
+      }
+    }
+  ]
+}

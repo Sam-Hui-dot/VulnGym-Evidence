@@ -1,0 +1,37 @@
+{
+  "selection_version": "pilot-v1",
+  "selection_goal": "Five repository-diverse cases spanning deterministic sinks, cross-file traces, business logic, and Agent capability boundaries.",
+  "cases": [
+    {
+      "entry_id": "entry-00084",
+      "project": "n8n",
+      "repo_url": "https://github.com/n8n-io/n8n",
+      "focus": "Stored XSS with a 12-node trace"
+    },
+    {
+      "entry_id": "entry-00080",
+      "project": "Tencent/WeKnora",
+      "repo_url": "https://github.com/Tencent/WeKnora",
+      "focus": "Go OS command injection with a concrete process-execution sink"
+    },
+    {
+      "entry_id": "entry-00394",
+      "project": "fastmcp",
+      "repo_url": "https://github.com/PrefectHQ/fastmcp",
+      "focus": "Python path-parameter encoding flaw enabling SSRF/path traversal"
+    },
+    {
+      "entry_id": "entry-00383",
+      "project": "openclaw",
+      "repo_url": "https://github.com/openclaw/openclaw",
+      "focus": "Authorization business-logic flaw with a 13-node cross-file trace"
+    },
+    {
+      "entry_id": "entry-00430",
+      "project": "google/adk-python",
+      "repo_url": "https://github.com/google/adk-python",
+      "focus": "Agent framework arbitrary module import and missing authentication"
+    }
+  ]
+}
+

@@ -1,0 +1,36 @@
+{
+  "selection_version": "unseen-v1",
+  "selection_goal": "Five previously untuned cases covering expression injection, file access, argument injection, authentication bypass, and allowlist/approval mismatch.",
+  "cases": [
+    {
+      "entry_id": "entry-00082",
+      "project": "n8n",
+      "repo_url": "https://github.com/n8n-io/n8n",
+      "focus": "Expression injection and function this-context sandbox escape"
+    },
+    {
+      "entry_id": "entry-00087",
+      "project": "n8n",
+      "repo_url": "https://github.com/n8n-io/n8n",
+      "focus": "Unauthenticated file access through form Content-Type confusion"
+    },
+    {
+      "entry_id": "entry-00107",
+      "project": "n8n",
+      "repo_url": "https://github.com/n8n-io/n8n",
+      "focus": "Git argument injection through an omitted option separator"
+    },
+    {
+      "entry_id": "entry-00121",
+      "project": "openclaw",
+      "repo_url": "https://github.com/openclaw/openclaw",
+      "focus": "WebSocket device-identity bypass from unvalidated token presence"
+    },
+    {
+      "entry_id": "entry-00146",
+      "project": "openclaw",
+      "repo_url": "https://github.com/openclaw/openclaw",
+      "focus": "Allowlist and approval bypass through rawCommand/argv mismatch"
+    }
+  ]
+}

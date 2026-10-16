@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fastmcp-control-uncertain",
+  "repo_url": "https://github.com/PrefectHQ/fastmcp",
+  "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+  "report_text": "离线位置控制，仅检查引用，不审核语义。",
+  "claims": [
+    {
+      "claim_id": "source-control",
+      "kind": "source_location",
+      "text": "指定文件行号包含此引用代码。",
+      "node": {
+        "file": "src/fastmcp/missing_demonstration_file.py",
+        "line": 215,
+        "code": "                url_path = url_path.replace(placeholder, safe_value)"
+      }
+    }
+  ]
+}

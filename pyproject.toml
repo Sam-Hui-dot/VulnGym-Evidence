@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulngym-evidence"
+version = "0.2.4"
+description = "Scoped, evidence-first verification of security-report claims"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "VulnGym Agent contributors" }]
+dependencies = []
+
+[project.scripts]
+vulngym-agent = "vulngym_agent.cli:main"
+vulngym-evidence = "vulngym_evidence.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vulngym_evidence = ["web/*.html", "web/*.css", "web/*.js", "web/*.mjs", "web/*.json"]

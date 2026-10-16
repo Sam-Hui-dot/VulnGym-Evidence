@@ -1,0 +1,598 @@
+{
+  "product_version": "0.1.0",
+  "prompt_version": "claims-judge-1.8.2",
+  "created_at": "2026-10-06T17:11:36.761045+00:00",
+  "input_sha256": "bb4725b0d87048e8b0b65f9c0de2a6d9946e6f064108e4b8774f396ab8d7b8bf",
+  "request": {
+    "schema_version": "1.0",
+    "case_id": "demo-1791305480640-1",
+    "repo_url": "https://github.com/PrefectHQ/fastmcp",
+    "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+    "report_text": "FastMCP 报告复核演示\n\n来源说明：这是一份基于公开固定版本源码构造的教学演示报告，不是实际漏洞举报，也不表示发现了新的漏洞。以下内容是待核查说法，未附参考答案。\n\n代码仓库：https://github.com/PrefectHQ/fastmcp\n代码版本：40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71\n\n一、引用位置\n报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：\n                url_path = url_path.replace(placeholder, safe_value)\n\n二、操作描述\n这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：215\n引用代码：\n                url_path = url_path.replace(placeholder, safe_value)\n\n三、防护范围\n这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：71\n引用代码：\n        return httpx.Request(\n",
+    "source_link": "",
+    "vuln_ids": [],
+    "claims": [
+      {
+        "claim_id": "claim-1791305499720-2",
+        "kind": "critical_operation",
+        "text": "路径参数替换操作直接拼接原始字符串，未进行 URL 编码或处理点号。",
+        "origin": {
+          "quote": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：215\n引用代码：\n                url_path = url_path.replace(placeholder, safe_value)",
+          "start": 336,
+          "end": 519
+        },
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 215,
+          "code": "                url_path = url_path.replace(placeholder, safe_value)"
+        }
+      },
+      {
+        "claim_id": "claim-1791305499720-3",
+        "kind": "critical_operation",
+        "text": "请求在发往网络前及重定向后均检查 DNS 解析结果并拒绝私网 IP。",
+        "origin": {
+          "quote": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：71\n引用代码：\n        return httpx.Request(",
+          "start": 528,
+          "end": 676
+        },
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 71,
+          "code": "        return httpx.Request("
+        }
+      },
+      {
+        "claim_id": "claim-1791306556337-4",
+        "kind": "source_location",
+        "text": "第 215 行包含报告引用的路径参数替换代码。",
+        "origin": {
+          "quote": "报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：\n                url_path = url_path.replace(placeholder, safe_value)\n",
+          "start": 182,
+          "end": 328
+        },
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 215,
+          "code": "                url_path = url_path.replace(placeholder, safe_value)\n"
+        }
+      }
+    ]
+  },
+  "verdict": "contradicted",
+  "results": [
+    {
+      "claim_id": "claim-1791305499720-2",
+      "kind": "critical_operation",
+      "text": "路径参数替换操作直接拼接原始字符串，未进行 URL 编码或处理点号。",
+      "verdict": "contradicted",
+      "confidence": 0.98,
+      "reason": "证据显示代码在替换前对参数值进行了 URL 编码（quote）并将点号显式替换为 %2E，这与声称的“未进行 URL 编码或处理点号”直接矛盾。",
+      "evidence_refs": [
+        "source:claim-1791305499720-2:0"
+      ],
+      "basis": "judge_critic",
+      "origin": {
+        "quote": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：215\n引用代码：\n                url_path = url_path.replace(placeholder, safe_value)",
+        "start": 336,
+        "end": 519
+      },
+      "countercheck": {
+        "reason": "第 214 行明确执行了 `safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")`，随后才在第 215 行使用该安全值进行替换，证明存在编码和点号处理。",
+        "evidence_refs": [
+          "source:claim-1791305499720-2:0"
+        ],
+        "observations": [
+          {
+            "evidence_id": "source:claim-1791305499720-2:0",
+            "quote": "                safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              214,
+              214
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "203-222",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          },
+          {
+            "evidence_id": "source:claim-1791305499720-2:0",
+            "quote": "                url_path = url_path.replace(placeholder, safe_value)",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              215,
+              215
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "203-222",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          }
+        ],
+        "status": "conflict_found",
+        "scope_note": "仅核对引用的源码摘录及所见上下文；未读取的调用方、中间件、外部实现与运行配置仍未核验。摘录一致不等于模型解释已被证明。"
+      },
+      "critic_countercheck": {
+        "reason": "检查 S1L214 行代码：safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")。该行明确执行了 URL 编码和点号转义，否定了原始断言中关于缺乏这些安全措施的说法。",
+        "evidence_refs": [
+          "source:claim-1791305499720-2:0"
+        ],
+        "observations": [
+          {
+            "evidence_id": "source:claim-1791305499720-2:0",
+            "quote": "                safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              214,
+              214
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "203-222",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          }
+        ],
+        "status": "conflict_found",
+        "scope_note": "仅核对引用的源码摘录及所见上下文；未读取的调用方、中间件、外部实现与运行配置仍未核验。摘录一致不等于模型解释已被证明。"
+      },
+      "review_status": "completed"
+    },
+    {
+      "claim_id": "claim-1791305499720-3",
+      "kind": "critical_operation",
+      "text": "请求在发往网络前及重定向后均检查 DNS 解析结果并拒绝私网 IP。",
+      "verdict": "uncertain",
+      "confidence": 0.8,
+      "reason": "当前文件仅构建了 httpx.Request 对象，并未包含发送请求、DNS 解析检查或重定向处理的逻辑，无法从本地源码证实调用方的行为。",
+      "evidence_refs": [
+        "source:claim-1791305499720-3:0"
+      ],
+      "basis": "judge_critic",
+      "origin": {
+        "quote": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：71\n引用代码：\n        return httpx.Request(",
+        "start": 528,
+        "end": 676
+      },
+      "countercheck": {
+        "reason": "代码返回的是 Request 对象而非 Response，网络发送及后续的安全检查发生在该函数之外，缺乏关于外部调用方实现细节的证据。",
+        "evidence_refs": [
+          "source:claim-1791305499720-3:0"
+        ],
+        "observations": [
+          {
+            "evidence_id": "source:claim-1791305499720-3:0",
+            "quote": "        return httpx.Request(",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              71,
+              71
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "59-111",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          },
+          {
+            "evidence_id": "source:claim-1791305499720-3:0",
+            "quote": "            url=url,",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              73,
+              73
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "59-111",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          }
+        ],
+        "status": "unresolved",
+        "scope_note": "仅核对引用的源码摘录及所见上下文；未读取的调用方、中间件、外部实现与运行配置仍未核验。摘录一致不等于模型解释已被证明。"
+      },
+      "critic_countercheck": {
+        "reason": "S3L71 处仅返回一个构造好的 httpx.Request 对象。没有证据表明在此处或紧随其后的代码中调用了 DNS 解析函数或检查了目标 IP 是否属于私有地址段。断言中的安全控制措施在当前视野内缺失。",
+        "evidence_refs": [
+          "source:claim-1791305499720-3:0"
+        ],
+        "observations": [
+          {
+            "evidence_id": "source:claim-1791305499720-3:0",
+            "quote": "        return httpx.Request(",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              71,
+              71
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "59-111",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          },
+          {
+            "evidence_id": "source:claim-1791305499720-3:0",
+            "quote": "            url=url,",
+            "quote_verified": true,
+            "selection_method": "source_line_range",
+            "source_line_range": [
+              73,
+              73
+            ],
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "context_range": "59-111",
+            "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71"
+          }
+        ],
+        "status": "unresolved",
+        "scope_note": "仅核对引用的源码摘录及所见上下文；未读取的调用方、中间件、外部实现与运行配置仍未核验。摘录一致不等于模型解释已被证明。"
+      },
+      "review_status": "completed"
+    },
+    {
+      "claim_id": "claim-1791306556337-4",
+      "kind": "source_location",
+      "text": "第 215 行包含报告引用的路径参数替换代码。",
+      "verdict": "supported",
+      "confidence": 1.0,
+      "reason": "指定版本、文件、行范围与引用片段一致；此项仅核对字面位置。",
+      "evidence_refs": [
+        "git:reviewed_commit",
+        "source:claim-1791306556337-4:0"
+      ],
+      "basis": "deterministic",
+      "origin": {
+        "quote": "报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：\n                url_path = url_path.replace(placeholder, safe_value)\n",
+        "start": 182,
+        "end": 328
+      },
+      "review_status": "completed"
+    }
+  ],
+  "evidence_packet": {
+    "packet_version": "claims-1.0",
+    "repository": {
+      "repo_url": "https://github.com/PrefectHQ/fastmcp",
+      "status": "resolved",
+      "path": "/home/sam/rhinobird/vulngym-repos/PrefectHQ/fastmcp",
+      "origin": "https://github.com/PrefectHQ/fastmcp.git",
+      "reason": "matched local Git repository"
+    },
+    "claims": [
+      {
+        "claim": {
+          "claim_id": "claim-1791305499720-2",
+          "kind": "critical_operation",
+          "text": "路径参数替换操作直接拼接原始字符串，未进行 URL 编码或处理点号。",
+          "origin": {
+            "quote": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：215\n引用代码：\n                url_path = url_path.replace(placeholder, safe_value)",
+            "start": 336,
+            "end": 519
+          },
+          "node": {
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "line": 215,
+            "code": "                url_path = url_path.replace(placeholder, safe_value)"
+          }
+        },
+        "evidence_refs": [
+          "git:reviewed_commit",
+          "source:claim-1791305499720-2:0",
+          "claim-1791305499720-2:lifecycle"
+        ],
+        "gap": null,
+        "literal_match": true,
+        "trace_complete": null,
+        "fix_relation": null
+      },
+      {
+        "claim": {
+          "claim_id": "claim-1791305499720-3",
+          "kind": "critical_operation",
+          "text": "请求在发往网络前及重定向后均检查 DNS 解析结果并拒绝私网 IP。",
+          "origin": {
+            "quote": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：71\n引用代码：\n        return httpx.Request(",
+            "start": 528,
+            "end": 676
+          },
+          "node": {
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "line": 71,
+            "code": "        return httpx.Request("
+          }
+        },
+        "evidence_refs": [
+          "git:reviewed_commit",
+          "source:claim-1791305499720-3:0",
+          "claim-1791305499720-3:source:helper:same_file:_unflatten_arguments:80",
+          "claim-1791305499720-3:lifecycle"
+        ],
+        "gap": null,
+        "literal_match": true,
+        "trace_complete": null,
+        "fix_relation": null
+      },
+      {
+        "claim": {
+          "claim_id": "claim-1791306556337-4",
+          "kind": "source_location",
+          "text": "第 215 行包含报告引用的路径参数替换代码。",
+          "origin": {
+            "quote": "报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：\n                url_path = url_path.replace(placeholder, safe_value)\n",
+            "start": 182,
+            "end": 328
+          },
+          "node": {
+            "file": "src/fastmcp/utilities/openapi/director.py",
+            "line": 215,
+            "code": "                url_path = url_path.replace(placeholder, safe_value)\n"
+          }
+        },
+        "evidence_refs": [
+          "git:reviewed_commit",
+          "source:claim-1791306556337-4:0"
+        ],
+        "gap": null,
+        "literal_match": true,
+        "trace_complete": null,
+        "fix_relation": null
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "git:reviewed_commit",
+        "kind": "git",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "repository": {
+          "repo_url": "https://github.com/PrefectHQ/fastmcp",
+          "status": "resolved",
+          "path": "/home/sam/rhinobird/vulngym-repos/PrefectHQ/fastmcp",
+          "origin": "https://github.com/PrefectHQ/fastmcp.git",
+          "reason": "matched local Git repository"
+        },
+        "reason": "指定 Commit 可读取"
+      },
+      {
+        "evidence_id": "source:claim-1791305499720-2:0",
+        "field": "claim-1791305499720-2[0]",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "declared_line": 215,
+        "declared_code": "                url_path = url_path.replace(placeholder, safe_value)",
+        "context_range": "203-222",
+        "context_before_lines": 12,
+        "context_after_lines": 40,
+        "numbered_source": "   203 |             base_url: Base URL to prepend\n   204 | \n   205 |         Returns:\n   206 |             Complete URL with path parameters substituted\n   207 |         \"\"\"\n   208 |         # Substitute path parameters with URL-encoding to prevent\n   209 |         # path traversal and SSRF via crafted parameter values\n   210 |         url_path = path_template\n   211 |         for param_name, param_value in path_params.items():\n   212 |             placeholder = f\"{{{param_name}}}\"\n   213 |             if placeholder in url_path:\n   214 |                 safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")\n   215 |                 url_path = url_path.replace(placeholder, safe_value)\n   216 | \n   217 |         # Combine with base URL\n   218 |         return urljoin(base_url.rstrip(\"/\") + \"/\", url_path.lstrip(\"/\"))\n   219 | \n   220 | \n   221 | # Export public symbols\n   222 | __all__ = [\"RequestDirector\"]",
+        "kind": "source",
+        "literal_match": true,
+        "actual_declared_range": "                url_path = url_path.replace(placeholder, safe_value)"
+      },
+      {
+        "evidence_id": "claim-1791305499720-2:lifecycle",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "declared_line": 215,
+        "candidate_calls": [
+          "url_path.replace"
+        ],
+        "constructor_like_calls": [],
+        "downstream_activation_calls": [],
+        "scan_range": "216-222",
+        "interpretation": "Naming and nearby-source signals only. A constructor-like call plus a later activation call is counterevidence to claiming the constructor itself performs the side effect, but is not by itself a final field verdict.",
+        "kind": "lifecycle"
+      },
+      {
+        "evidence_id": "source:claim-1791305499720-3:0",
+        "field": "claim-1791305499720-3[0]",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "declared_line": 71,
+        "declared_code": "        return httpx.Request(",
+        "context_range": "59-111",
+        "context_before_lines": 12,
+        "context_after_lines": 40,
+        "numbered_source": "    59 |         headers = header_params if header_params else None\n    60 |         json_body: dict[str, Any] | list[Any] | None = None\n    61 |         content: str | bytes | None = None\n    62 | \n    63 |         # Step 4: Handle request body\n    64 |         if body is not None:\n    65 |             if isinstance(body, dict | list):\n    66 |                 json_body = body\n    67 |             else:\n    68 |                 content = body\n    69 | \n    70 |         # Step 5: Create httpx.Request\n    71 |         return httpx.Request(\n    72 |             method=method,\n    73 |             url=url,\n    74 |             params=params,\n    75 |             headers=headers,\n    76 |             json=json_body,\n    77 |             content=content,\n    78 |         )\n    79 | \n    80 |     def _unflatten_arguments(\n    81 |         self, route: HTTPRoute, flat_args: dict[str, Any]\n    82 |     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], Any]:\n    83 |         \"\"\"\n    84 |         Maps flat arguments back to their OpenAPI locations using the parameter map.\n    85 | \n    86 |         Args:\n    87 |             route: HTTPRoute with parameter_map containing location mappings\n    88 |             flat_args: Flat arguments from LLM call\n    89 | \n    90 |         Returns:\n    91 |             Tuple of (path_params, query_params, header_params, body)\n    92 |         \"\"\"\n    93 |         path_params = {}\n    94 |         query_params = {}\n    95 |         header_params = {}\n    96 |         body_props = {}\n    97 | \n    98 |         # Use parameter map to route arguments to correct locations\n    99 |         if hasattr(route, \"parameter_map\") and route.parameter_map:\n   100 |             for arg_name, value in flat_args.items():\n   101 |                 if value is None:\n   102 |                     continue  # Skip None values for optional parameters\n   103 | \n   104 |                 if arg_name not in route.parameter_map:\n   105 |                     logger.warning(\n   106 |                         f\"Argument '{arg_name}' not found in parameter map for {route.operation_id}\"\n   107 |                     )\n   108 |                     continue\n   109 | \n   110 |                 mapping = route.parameter_map[arg_name]\n   111 |                 location = mapping[\"location\"]",
+        "kind": "source",
+        "literal_match": true,
+        "actual_declared_range": "        return httpx.Request("
+      },
+      {
+        "evidence_id": "claim-1791305499720-3:source:helper:same_file:_unflatten_arguments:80",
+        "status": "available",
+        "helper": "_unflatten_arguments",
+        "scope": "same_file",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "definition_line": 80,
+        "context_range": "78-92",
+        "numbered_source": "    78 |         )\n    79 | \n    80 |     def _unflatten_arguments(\n    81 |         self, route: HTTPRoute, flat_args: dict[str, Any]\n    82 |     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], Any]:\n    83 |         \"\"\"\n    84 |         Maps flat arguments back to their OpenAPI locations using the parameter map.\n    85 | \n    86 |         Args:\n    87 |             route: HTTPRoute with parameter_map containing location mappings\n    88 |             flat_args: Flat arguments from LLM call\n    89 | \n    90 |         Returns:\n    91 |             Tuple of (path_params, query_params, header_params, body)\n    92 |         \"\"\"",
+        "resolution": "direct call with one same-file definition",
+        "kind": "source_helper"
+      },
+      {
+        "evidence_id": "claim-1791305499720-3:lifecycle",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "declared_line": 71,
+        "candidate_calls": [
+          "httpx.Request"
+        ],
+        "constructor_like_calls": [],
+        "downstream_activation_calls": [],
+        "scan_range": "72-191",
+        "interpretation": "Naming and nearby-source signals only. A constructor-like call plus a later activation call is counterevidence to claiming the constructor itself performs the side effect, but is not by itself a final field verdict.",
+        "kind": "lifecycle"
+      },
+      {
+        "evidence_id": "source:claim-1791306556337-4:0",
+        "field": "claim-1791306556337-4[0]",
+        "status": "available",
+        "commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "file": "src/fastmcp/utilities/openapi/director.py",
+        "declared_line": 215,
+        "declared_code": "                url_path = url_path.replace(placeholder, safe_value)\n",
+        "context_range": "203-222",
+        "context_before_lines": 12,
+        "context_after_lines": 40,
+        "numbered_source": "   203 |             base_url: Base URL to prepend\n   204 | \n   205 |         Returns:\n   206 |             Complete URL with path parameters substituted\n   207 |         \"\"\"\n   208 |         # Substitute path parameters with URL-encoding to prevent\n   209 |         # path traversal and SSRF via crafted parameter values\n   210 |         url_path = path_template\n   211 |         for param_name, param_value in path_params.items():\n   212 |             placeholder = f\"{{{param_name}}}\"\n   213 |             if placeholder in url_path:\n   214 |                 safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")\n   215 |                 url_path = url_path.replace(placeholder, safe_value)\n   216 | \n   217 |         # Combine with base URL\n   218 |         return urljoin(base_url.rstrip(\"/\") + \"/\", url_path.lstrip(\"/\"))\n   219 | \n   220 | \n   221 | # Export public symbols\n   222 | __all__ = [\"RequestDirector\"]",
+        "kind": "source",
+        "literal_match": true,
+        "actual_declared_range": "                url_path = url_path.replace(placeholder, safe_value)"
+      }
+    ],
+    "policy": {
+      "target_code_executed": false,
+      "network_fetch": false,
+      "trace_scope": "bounded static evidence; not full taint analysis",
+      "fix_scope": "advisory attribution and readable patch; not proof of total remediation"
+    }
+  },
+  "model_calls": [
+    {
+      "role": "judge",
+      "provider": "qwen",
+      "output": {
+        "results": [
+          {
+            "claim_id": "claim-1791305499720-2",
+            "assessment": "contradicted:conflict_found",
+            "confidence": 0.98,
+            "reason": "证据显示代码在替换前对参数值进行了 URL 编码（quote）并将点号显式替换为 %2E，这与声称的“未进行 URL 编码或处理点号”直接矛盾。",
+            "evidence_refs": [
+              "source:claim-1791305499720-2:0"
+            ],
+            "countercheck": {
+              "reason": "第 214 行明确执行了 `safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")`，随后才在第 215 行使用该安全值进行替换，证明存在编码和点号处理。",
+              "evidence_refs": [
+                "source:claim-1791305499720-2:0"
+              ],
+              "observations": [
+                {
+                  "source_line_id": "S1L214"
+                },
+                {
+                  "source_line_id": "S1L215"
+                }
+              ]
+            }
+          },
+          {
+            "claim_id": "claim-1791305499720-3",
+            "assessment": "uncertain:unresolved",
+            "confidence": 0.95,
+            "reason": "当前文件仅构建了 httpx.Request 对象，并未包含发送请求、DNS 解析检查或重定向处理的逻辑，无法从本地源码证实调用方的行为。",
+            "evidence_refs": [
+              "source:claim-1791305499720-3:0"
+            ],
+            "countercheck": {
+              "reason": "代码返回的是 Request 对象而非 Response，网络发送及后续的安全检查发生在该函数之外，缺乏关于外部调用方实现细节的证据。",
+              "evidence_refs": [
+                "source:claim-1791305499720-3:0"
+              ],
+              "observations": [
+                {
+                  "source_line_id": "S3L71"
+                },
+                {
+                  "source_line_id": "S3L73"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "transport": "qwen_chat_completions",
+        "requested_model": "qwen3.8-flash",
+        "response_id": "chatcmpl-d3550ee1-4df9-9157-8e63-9b85a665d960",
+        "resolved_model": "qwen3.8-flash",
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 577,
+          "prompt_tokens": 3516,
+          "total_tokens": 4093,
+          "input_tokens": 3516,
+          "output_tokens": 577,
+          "cached_input_tokens": 0
+        }
+      },
+      "status": "validated",
+      "elapsed_seconds": 9.959
+    },
+    {
+      "role": "critic",
+      "provider": "qwen",
+      "output": {
+        "results": [
+          {
+            "claim_id": "claim-1791305499720-2",
+            "assessment": "contradicted:conflict_found",
+            "confidence": 1,
+            "reason": "源码显示在替换路径参数前，使用了 quote(str(param_value), safe=\"\") 进行 URL 编码，并显式将点号替换为 %2E。这与声称的“未进行 URL 编码或处理点号”直接矛盾。",
+            "evidence_refs": [
+              "source:claim-1791305499720-2:0"
+            ],
+            "countercheck": {
+              "reason": "检查 S1L214 行代码：safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")。该行明确执行了 URL 编码和点号转义，否定了原始断言中关于缺乏这些安全措施的说法。",
+              "evidence_refs": [
+                "source:claim-1791305499720-2:0"
+              ],
+              "observations": [
+                {
+                  "source_line_id": "S1L214"
+                }
+              ]
+            }
+          },
+          {
+            "claim_id": "claim-1791305499720-3",
+            "assessment": "uncertain:unresolved",
+            "confidence": 0.8,
+            "reason": "提供的证据仅包含 httpx.Request 对象的创建过程（S3L59-S3L111），并未展示实际发送请求的代码、DNS 解析逻辑或私网 IP 过滤机制。无法从当前片段证实存在所述的安全检查。",
+            "evidence_refs": [
+              "source:claim-1791305499720-3:0"
+            ],
+            "countercheck": {
+              "reason": "S3L71 处仅返回一个构造好的 httpx.Request 对象。没有证据表明在此处或紧随其后的代码中调用了 DNS 解析函数或检查了目标 IP 是否属于私有地址段。断言中的安全控制措施在当前视野内缺失。",
+              "evidence_refs": [
+                "source:claim-1791305499720-3:0"
+              ],
+              "observations": [
+                {
+                  "source_line_id": "S3L71"
+                },
+                {
+                  "source_line_id": "S3L73"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "transport": "qwen_chat_completions",
+        "requested_model": "qwen3.8-flash",
+        "response_id": "chatcmpl-911af3e1-2bc8-9c02-9373-44e321a5003e",
+        "resolved_model": "qwen3.8-flash",
+        "finish_reason": "stop",
+        "usage": {
+          "completion_tokens": 470,
+          "prompt_tokens": 3545,
+          "total_tokens": 4015,
+          "input_tokens": 3545,
+          "output_tokens": 470,
+          "cached_input_tokens": 0
+        }
+      },
+      "status": "validated",
+      "elapsed_seconds": 9.357
+    }
+  ],
+  "semantic_status": "judge_critic_completed",
+  "elapsed_seconds": 19.515,
+  "scope": "仅评价确认提交的声明；原始报告其他内容未核验。"
+}

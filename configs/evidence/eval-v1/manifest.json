@@ -1,0 +1,451 @@
+{
+  "version": "claims-development-v1",
+  "created_date": "2026-10-03",
+  "scope": "12 authored development claims; inherited repository exposure; not external blind gold",
+  "cases": [
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c01",
+        "repo_url": "https://github.com/google/adk-python",
+        "reviewed_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这里调用代理名称校验；校验会拒绝包含斜杠的名称，并在找不到相应目录或 .py 文件时抛出 ValueError，是进入后续加载步骤前的检查点。",
+            "node": {
+              "file": "src/google/adk/cli/utils/agent_loader.py",
+              "line": 220,
+              "code": "    self._validate_agent_name(agent_name)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "_perform_load 先调用 _validate_agent_name；后者的名称正则不允许斜杠，并显式检查 is_dir/is_file，不存在则抛 ValueError。范围只限所列函数，不声称整个系统安全。",
+        "source_repository": "google/adk-python",
+        "source_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "source_file": "src/google/adk/cli/utils/agent_loader.py",
+        "source_sha256": "d72c96adf9a2995a6bb870dc0c2d63451485854deeb8f8ed043ecb79f9bd951b",
+        "review_range": "185-265",
+        "review_excerpt": "   185 |         raise e\n   186 |       e.args = (\n   187 |           f\"Fail to load '{config_path}' config. {e.args[0] if e.args else ''}\",\n   188 |       ) + e.args[1:]\n   189 |       raise e\n   190 | \n   191 |   _VALID_AGENT_NAME_RE = re.compile(r\"^[a-zA-Z0-9_]+$\")\n   192 | \n   193 |   def _validate_agent_name(self, agent_name: str) -> None:\n   194 |     \"\"\"Validate agent name to prevent arbitrary module imports.\"\"\"\n   195 |     # Strip the special agent prefix for validation\n   196 |     if agent_name.startswith(\"__\"):\n   197 |       name_to_check = agent_name[2:]\n   198 |       check_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   199 |     else:\n   200 |       name_to_check = agent_name\n   201 |       check_dir = self.agents_dir\n   202 | \n   203 |     if not self._VALID_AGENT_NAME_RE.match(name_to_check):\n   204 |       raise ValueError(\n   205 |           f\"Invalid agent name: {agent_name!r}. Agent names must be valid\"\n   206 |           \" Python identifiers (letters, digits, and underscores only).\"\n   207 |       )\n   208 | \n   209 |     # Verify the agent exists on disk before allowing import\n   210 |     agent_path = Path(check_dir) / name_to_check\n   211 |     agent_file = Path(check_dir) / f\"{name_to_check}.py\"\n   212 |     if not (agent_path.is_dir() or agent_file.is_file()):\n   213 |       raise ValueError(\n   214 |           f\"Agent not found: {agent_name!r}. No matching directory or module\"\n   215 |           f\" exists in '{os.path.join(check_dir, name_to_check)}'.\"\n   216 |       )\n   217 | \n   218 |   def _perform_load(self, agent_name: str) -> Union[BaseAgent, App]:\n   219 |     \"\"\"Internal logic to load an agent\"\"\"\n   220 |     self._validate_agent_name(agent_name)\n   221 |     # Determine the directory to use for loading\n   222 |     if agent_name.startswith(\"__\"):\n   223 |       # Special agent: use special agents directory\n   224 |       agents_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   225 |       # Remove the double underscore prefix for the actual agent name\n   226 |       actual_agent_name = agent_name[2:]\n   227 |       # If this special agents directory is part of a package (has __init__.py\n   228 |       # up the tree), build a fully-qualified module path so the built-in agent\n   229 |       # can continue to use relative imports. Otherwise, fall back to importing\n   230 |       # by module name relative to agents_dir.\n   231 |       module_base_name = actual_agent_name\n   232 |       package_parts: list[str] = []\n   233 |       package_root: Optional[Path] = None\n   234 |       current_dir = Path(agents_dir).resolve()\n   235 |       while True:\n   236 |         if not (current_dir / \"__init__.py\").is_file():\n   237 |           package_root = current_dir\n   238 |           break\n   239 |         package_parts.append(current_dir.name)\n   240 |         current_dir = current_dir.parent\n   241 |       if package_parts:\n   242 |         package_parts.reverse()\n   243 |         module_base_name = \".\".join(package_parts + [actual_agent_name])\n   244 |         if str(package_root) not in sys.path:\n   245 |           sys.path.insert(0, str(package_root))\n   246 |     else:\n   247 |       # Regular agent: use the configured agents directory\n   248 |       agents_dir = self.agents_dir\n   249 |       actual_agent_name = agent_name\n   250 |       module_base_name = actual_agent_name\n   251 | \n   252 |     # Add agents_dir to sys.path\n   253 |     if agents_dir not in sys.path:\n   254 |       sys.path.insert(0, agents_dir)\n   255 | \n   256 |     logger.debug(\"Loading .env for agent %s from %s\", agent_name, agents_dir)\n   257 |     envs.load_dotenv_for_agent(actual_agent_name, str(agents_dir))\n   258 | \n   259 |     if root_agent := self._load_from_module_or_package(module_base_name):\n   260 |       self._record_origin_metadata(\n   261 |           loaded=root_agent,\n   262 |           expected_app_name=agent_name,\n   263 |           module_name=module_base_name,\n   264 |           agents_dir=agents_dir,\n   265 |       )",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c02",
+        "repo_url": "https://github.com/google/adk-python",
+        "reviewed_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这里的名称校验仅要求名称非空；只要磁盘上的目标存在，包含斜杠的名称也会通过该校验。",
+            "node": {
+              "file": "src/google/adk/cli/utils/agent_loader.py",
+              "line": 220,
+              "code": "    self._validate_agent_name(agent_name)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "_VALID_AGENT_NAME_RE 只允许字母、数字、下划线；不匹配会在磁盘检查之前抛 ValueError。目标存在不能使带斜杠名称通过。",
+        "source_repository": "google/adk-python",
+        "source_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "source_file": "src/google/adk/cli/utils/agent_loader.py",
+        "source_sha256": "d72c96adf9a2995a6bb870dc0c2d63451485854deeb8f8ed043ecb79f9bd951b",
+        "review_range": "185-265",
+        "review_excerpt": "   185 |         raise e\n   186 |       e.args = (\n   187 |           f\"Fail to load '{config_path}' config. {e.args[0] if e.args else ''}\",\n   188 |       ) + e.args[1:]\n   189 |       raise e\n   190 | \n   191 |   _VALID_AGENT_NAME_RE = re.compile(r\"^[a-zA-Z0-9_]+$\")\n   192 | \n   193 |   def _validate_agent_name(self, agent_name: str) -> None:\n   194 |     \"\"\"Validate agent name to prevent arbitrary module imports.\"\"\"\n   195 |     # Strip the special agent prefix for validation\n   196 |     if agent_name.startswith(\"__\"):\n   197 |       name_to_check = agent_name[2:]\n   198 |       check_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   199 |     else:\n   200 |       name_to_check = agent_name\n   201 |       check_dir = self.agents_dir\n   202 | \n   203 |     if not self._VALID_AGENT_NAME_RE.match(name_to_check):\n   204 |       raise ValueError(\n   205 |           f\"Invalid agent name: {agent_name!r}. Agent names must be valid\"\n   206 |           \" Python identifiers (letters, digits, and underscores only).\"\n   207 |       )\n   208 | \n   209 |     # Verify the agent exists on disk before allowing import\n   210 |     agent_path = Path(check_dir) / name_to_check\n   211 |     agent_file = Path(check_dir) / f\"{name_to_check}.py\"\n   212 |     if not (agent_path.is_dir() or agent_file.is_file()):\n   213 |       raise ValueError(\n   214 |           f\"Agent not found: {agent_name!r}. No matching directory or module\"\n   215 |           f\" exists in '{os.path.join(check_dir, name_to_check)}'.\"\n   216 |       )\n   217 | \n   218 |   def _perform_load(self, agent_name: str) -> Union[BaseAgent, App]:\n   219 |     \"\"\"Internal logic to load an agent\"\"\"\n   220 |     self._validate_agent_name(agent_name)\n   221 |     # Determine the directory to use for loading\n   222 |     if agent_name.startswith(\"__\"):\n   223 |       # Special agent: use special agents directory\n   224 |       agents_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   225 |       # Remove the double underscore prefix for the actual agent name\n   226 |       actual_agent_name = agent_name[2:]\n   227 |       # If this special agents directory is part of a package (has __init__.py\n   228 |       # up the tree), build a fully-qualified module path so the built-in agent\n   229 |       # can continue to use relative imports. Otherwise, fall back to importing\n   230 |       # by module name relative to agents_dir.\n   231 |       module_base_name = actual_agent_name\n   232 |       package_parts: list[str] = []\n   233 |       package_root: Optional[Path] = None\n   234 |       current_dir = Path(agents_dir).resolve()\n   235 |       while True:\n   236 |         if not (current_dir / \"__init__.py\").is_file():\n   237 |           package_root = current_dir\n   238 |           break\n   239 |         package_parts.append(current_dir.name)\n   240 |         current_dir = current_dir.parent\n   241 |       if package_parts:\n   242 |         package_parts.reverse()\n   243 |         module_base_name = \".\".join(package_parts + [actual_agent_name])\n   244 |         if str(package_root) not in sys.path:\n   245 |           sys.path.insert(0, str(package_root))\n   246 |     else:\n   247 |       # Regular agent: use the configured agents directory\n   248 |       agents_dir = self.agents_dir\n   249 |       actual_agent_name = agent_name\n   250 |       module_base_name = actual_agent_name\n   251 | \n   252 |     # Add agents_dir to sys.path\n   253 |     if agents_dir not in sys.path:\n   254 |       sys.path.insert(0, agents_dir)\n   255 | \n   256 |     logger.debug(\"Loading .env for agent %s from %s\", agent_name, agents_dir)\n   257 |     envs.load_dotenv_for_agent(actual_agent_name, str(agents_dir))\n   258 | \n   259 |     if root_agent := self._load_from_module_or_package(module_base_name):\n   260 |       self._record_origin_metadata(\n   261 |           loaded=root_agent,\n   262 |           expected_app_name=agent_name,\n   263 |           module_name=module_base_name,\n   264 |           agents_dir=agents_dir,\n   265 |       )",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c03",
+        "repo_url": "https://github.com/google/adk-python",
+        "reviewed_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "在这里导入的模块已经由上游调用方完成数字签名验证，未经签名验证的模块不可能到达这一行。",
+            "node": {
+              "file": "src/google/adk/cli/utils/agent_loader.py",
+              "line": 75,
+              "code": "      module_candidate = importlib.import_module(agent_name)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "所给文件只能确认按名称导入，未提供上游部署、外部签名策略或可信验证链。没有本地签名校验既不能证明上游有验证，也不能证明上游绝无验证。",
+        "source_repository": "google/adk-python",
+        "source_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "source_file": "src/google/adk/cli/utils/agent_loader.py",
+        "source_sha256": "d72c96adf9a2995a6bb870dc0c2d63451485854deeb8f8ed043ecb79f9bd951b",
+        "review_range": "40-120",
+        "review_excerpt": "    40 | logger = logging.getLogger(\"google_adk.\" + __name__)\n    41 | \n    42 | # Special agents directory for agents with names starting with double underscore\n    43 | SPECIAL_AGENTS_DIR = os.path.join(\n    44 |     os.path.dirname(__file__), \"..\", \"built_in_agents\"\n    45 | )\n    46 | \n    47 | \n    48 | class AgentLoader(BaseAgentLoader):\n    49 |   \"\"\"Centralized agent loading with proper isolation, caching, and .env loading.\n    50 |   Support loading agents from below folder/file structures:\n    51 |   a)  {agent_name}.agent as a module name:\n    52 |       agents_dir/{agent_name}/agent.py (with root_agent defined in the module)\n    53 |   b)  {agent_name} as a module name\n    54 |       agents_dir/{agent_name}.py (with root_agent defined in the module)\n    55 |   c)  {agent_name} as a package name\n    56 |       agents_dir/{agent_name}/__init__.py (with root_agent in the package)\n    57 |   d)  {agent_name} as a YAML config folder:\n    58 |       agents_dir/{agent_name}/root_agent.yaml defines the root agent\n    59 | \n    60 |   \"\"\"\n    61 | \n    62 |   def __init__(self, agents_dir: str):\n    63 |     self.agents_dir = str(Path(agents_dir))\n    64 |     self._original_sys_path = None\n    65 |     self._agent_cache: dict[str, Union[BaseAgent, App]] = {}\n    66 | \n    67 |   def _load_from_module_or_package(\n    68 |       self, agent_name: str\n    69 |   ) -> Optional[Union[BaseAgent, App]]:\n    70 |     # Load for case: Import \"{agent_name}\" (as a package or module)\n    71 |     # Covers structures:\n    72 |     #   a) agents_dir/{agent_name}.py (with root_agent in the module)\n    73 |     #   b) agents_dir/{agent_name}/__init__.py (with root_agent in the package)\n    74 |     try:\n    75 |       module_candidate = importlib.import_module(agent_name)\n    76 |       # Check for \"app\" first, then \"root_agent\"\n    77 |       if hasattr(module_candidate, \"app\") and isinstance(\n    78 |           module_candidate.app, App\n    79 |       ):\n    80 |         logger.debug(\"Found app in %s\", agent_name)\n    81 |         return module_candidate.app\n    82 |       # Check for \"root_agent\" directly in \"{agent_name}\" module/package\n    83 |       elif hasattr(module_candidate, \"root_agent\"):\n    84 |         logger.debug(\"Found root_agent directly in %s\", agent_name)\n    85 |         if isinstance(module_candidate.root_agent, BaseAgent):\n    86 |           return module_candidate.root_agent\n    87 |         else:\n    88 |           logger.warning(\n    89 |               \"Root agent found is not an instance of BaseAgent. But a type %s\",\n    90 |               type(module_candidate.root_agent),\n    91 |           )\n    92 |       else:\n    93 |         logger.debug(\n    94 |             \"Module %s has no root_agent. Trying next pattern.\",\n    95 |             agent_name,\n    96 |         )\n    97 | \n    98 |     except ModuleNotFoundError as e:\n    99 |       if e.name == agent_name:\n   100 |         logger.debug(\"Module %s itself not found.\", agent_name)\n   101 |       else:\n   102 |         # the module imported by {agent_name}.agent module is not\n   103 |         # found\n   104 |         e.msg = f\"Fail to load '{agent_name}' module. \" + e.msg\n   105 |         raise e\n   106 |     except Exception as e:\n   107 |       if hasattr(e, \"msg\"):\n   108 |         e.msg = f\"Fail to load '{agent_name}' module. \" + e.msg\n   109 |         raise e\n   110 |       e.args = (\n   111 |           f\"Fail to load '{agent_name}' module. {e.args[0] if e.args else ''}\",\n   112 |       ) + e.args[1:]\n   113 |       raise e\n   114 | \n   115 |     return None\n   116 | \n   117 |   def _load_from_submodule(\n   118 |       self, agent_name: str\n   119 |   ) -> Optional[Union[BaseAgent], App]:\n   120 |     # Load for case: Import \"{agent_name}.agent\" and look for \"root_agent\"",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c04",
+        "repo_url": "https://github.com/PrefectHQ/fastmcp",
+        "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这里先对路径参数值进行 URL 编码，再把点号替换成 %2E；随后用该值替换路径占位符，最后拼接基础 URL。",
+            "node": {
+              "file": "src/fastmcp/utilities/openapi/director.py",
+              "line": 214,
+              "code": "                safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "_build_url 明示 quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")，之后替换占位符并 urljoin。仅声明代码进行这些变换，不声明彻底消除 SSRF。",
+        "source_repository": "PrefectHQ/fastmcp",
+        "source_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "source_file": "src/fastmcp/utilities/openapi/director.py",
+        "source_sha256": "88e62a5d8f11a1584c87a6ea0a021d9ca99bfdf49cbf53b577ec2eee4f2e3d53",
+        "review_range": "179-222",
+        "review_excerpt": "   179 |                     and body_schema.get(\"type\") == \"object\"\n   180 |                 ):\n   181 |                     body = body_props\n   182 |                 elif len(body_props) == 1:\n   183 |                     # If body schema is not an object and we have exactly one property,\n   184 |                     # use the property value directly\n   185 |                     body = next(iter(body_props.values()))\n   186 |                 else:\n   187 |                     # Multiple properties but schema is not object - wrap in object\n   188 |                     body = body_props\n   189 |             else:\n   190 |                 body = body_props\n   191 | \n   192 |         return path_params, query_params, header_params, body\n   193 | \n   194 |     def _build_url(\n   195 |         self, path_template: str, path_params: dict[str, Any], base_url: str\n   196 |     ) -> str:\n   197 |         \"\"\"\n   198 |         Build URL by substituting path parameters in the template.\n   199 | \n   200 |         Args:\n   201 |             path_template: OpenAPI path template (e.g., \"/users/{id}\")\n   202 |             path_params: Path parameter values\n   203 |             base_url: Base URL to prepend\n   204 | \n   205 |         Returns:\n   206 |             Complete URL with path parameters substituted\n   207 |         \"\"\"\n   208 |         # Substitute path parameters with URL-encoding to prevent\n   209 |         # path traversal and SSRF via crafted parameter values\n   210 |         url_path = path_template\n   211 |         for param_name, param_value in path_params.items():\n   212 |             placeholder = f\"{{{param_name}}}\"\n   213 |             if placeholder in url_path:\n   214 |                 safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")\n   215 |                 url_path = url_path.replace(placeholder, safe_value)\n   216 | \n   217 |         # Combine with base URL\n   218 |         return urljoin(base_url.rstrip(\"/\") + \"/\", url_path.lstrip(\"/\"))\n   219 | \n   220 | \n   221 | # Export public symbols\n   222 | __all__ = [\"RequestDirector\"]",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c05",
+        "repo_url": "https://github.com/PrefectHQ/fastmcp",
+        "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。",
+            "node": {
+              "file": "src/fastmcp/utilities/openapi/director.py",
+              "line": 215,
+              "code": "                url_path = url_path.replace(placeholder, safe_value)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "上一行显式对原始值 quote 并替换点号为 %2E，safe_value 才被用于占位符替换。",
+        "source_repository": "PrefectHQ/fastmcp",
+        "source_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "source_file": "src/fastmcp/utilities/openapi/director.py",
+        "source_sha256": "88e62a5d8f11a1584c87a6ea0a021d9ca99bfdf49cbf53b577ec2eee4f2e3d53",
+        "review_range": "180-222",
+        "review_excerpt": "   180 |                 ):\n   181 |                     body = body_props\n   182 |                 elif len(body_props) == 1:\n   183 |                     # If body schema is not an object and we have exactly one property,\n   184 |                     # use the property value directly\n   185 |                     body = next(iter(body_props.values()))\n   186 |                 else:\n   187 |                     # Multiple properties but schema is not object - wrap in object\n   188 |                     body = body_props\n   189 |             else:\n   190 |                 body = body_props\n   191 | \n   192 |         return path_params, query_params, header_params, body\n   193 | \n   194 |     def _build_url(\n   195 |         self, path_template: str, path_params: dict[str, Any], base_url: str\n   196 |     ) -> str:\n   197 |         \"\"\"\n   198 |         Build URL by substituting path parameters in the template.\n   199 | \n   200 |         Args:\n   201 |             path_template: OpenAPI path template (e.g., \"/users/{id}\")\n   202 |             path_params: Path parameter values\n   203 |             base_url: Base URL to prepend\n   204 | \n   205 |         Returns:\n   206 |             Complete URL with path parameters substituted\n   207 |         \"\"\"\n   208 |         # Substitute path parameters with URL-encoding to prevent\n   209 |         # path traversal and SSRF via crafted parameter values\n   210 |         url_path = path_template\n   211 |         for param_name, param_value in path_params.items():\n   212 |             placeholder = f\"{{{param_name}}}\"\n   213 |             if placeholder in url_path:\n   214 |                 safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")\n   215 |                 url_path = url_path.replace(placeholder, safe_value)\n   216 | \n   217 |         # Combine with base URL\n   218 |         return urljoin(base_url.rstrip(\"/\") + \"/\", url_path.lstrip(\"/\"))\n   219 | \n   220 | \n   221 | # Export public symbols\n   222 | __all__ = [\"RequestDirector\"]",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c06",
+        "repo_url": "https://github.com/PrefectHQ/fastmcp",
+        "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。",
+            "node": {
+              "file": "src/fastmcp/utilities/openapi/director.py",
+              "line": 71,
+              "code": "        return httpx.Request("
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "本文件构建请求但不负责实际发出请求，未提供调用方、DNS、重定向处理证据，不能证明或排除上游完整防护。",
+        "source_repository": "PrefectHQ/fastmcp",
+        "source_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "source_file": "src/fastmcp/utilities/openapi/director.py",
+        "source_sha256": "88e62a5d8f11a1584c87a6ea0a021d9ca99bfdf49cbf53b577ec2eee4f2e3d53",
+        "review_range": "36-116",
+        "review_excerpt": "    36 | \n    37 |         Returns:\n    38 |             httpx.Request: Properly formatted HTTP request\n    39 |         \"\"\"\n    40 |         logger.debug(\n    41 |             f\"Building request for {route.method} {route.path} with args: {flat_args}\"\n    42 |         )\n    43 | \n    44 |         # Step 1: Un-flatten arguments into path, query, body, etc. using parameter map\n    45 |         path_params, query_params, header_params, body = self._unflatten_arguments(\n    46 |             route, flat_args\n    47 |         )\n    48 | \n    49 |         logger.debug(\n    50 |             f\"Unflattened - path: {path_params}, query: {query_params}, headers: {header_params}, body: {body}\"\n    51 |         )\n    52 | \n    53 |         # Step 2: Build base URL with path parameters\n    54 |         url = self._build_url(route.path, path_params, base_url)\n    55 | \n    56 |         # Step 3: Prepare request data\n    57 |         method: str = route.method.upper()\n    58 |         params = query_params if query_params else None\n    59 |         headers = header_params if header_params else None\n    60 |         json_body: dict[str, Any] | list[Any] | None = None\n    61 |         content: str | bytes | None = None\n    62 | \n    63 |         # Step 4: Handle request body\n    64 |         if body is not None:\n    65 |             if isinstance(body, dict | list):\n    66 |                 json_body = body\n    67 |             else:\n    68 |                 content = body\n    69 | \n    70 |         # Step 5: Create httpx.Request\n    71 |         return httpx.Request(\n    72 |             method=method,\n    73 |             url=url,\n    74 |             params=params,\n    75 |             headers=headers,\n    76 |             json=json_body,\n    77 |             content=content,\n    78 |         )\n    79 | \n    80 |     def _unflatten_arguments(\n    81 |         self, route: HTTPRoute, flat_args: dict[str, Any]\n    82 |     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], Any]:\n    83 |         \"\"\"\n    84 |         Maps flat arguments back to their OpenAPI locations using the parameter map.\n    85 | \n    86 |         Args:\n    87 |             route: HTTPRoute with parameter_map containing location mappings\n    88 |             flat_args: Flat arguments from LLM call\n    89 | \n    90 |         Returns:\n    91 |             Tuple of (path_params, query_params, header_params, body)\n    92 |         \"\"\"\n    93 |         path_params = {}\n    94 |         query_params = {}\n    95 |         header_params = {}\n    96 |         body_props = {}\n    97 | \n    98 |         # Use parameter map to route arguments to correct locations\n    99 |         if hasattr(route, \"parameter_map\") and route.parameter_map:\n   100 |             for arg_name, value in flat_args.items():\n   101 |                 if value is None:\n   102 |                     continue  # Skip None values for optional parameters\n   103 | \n   104 |                 if arg_name not in route.parameter_map:\n   105 |                     logger.warning(\n   106 |                         f\"Argument '{arg_name}' not found in parameter map for {route.operation_id}\"\n   107 |                     )\n   108 |                     continue\n   109 | \n   110 |                 mapping = route.parameter_map[arg_name]\n   111 |                 location = mapping[\"location\"]\n   112 |                 openapi_name = mapping[\"openapi_name\"]\n   113 | \n   114 |                 if location == \"path\":\n   115 |                     path_params[openapi_name] = value\n   116 |                 elif location == \"query\":",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c07",
+        "repo_url": "https://github.com/FlowiseAI/Flowise",
+        "reviewed_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "此处调用 bcrypt.hashSync，把传入的 value 和上一行生成的 salt 作为参数，并返回密码哈希结果。",
+            "node": {
+              "file": "packages/server/src/enterprise/utils/encryption.util.ts",
+              "line": 34,
+              "code": "    return bcrypt.hashSync(value, salt)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "getHash 的完整函数先 genSaltSync(getPasswordSaltRounds())，再调用 bcrypt.hashSync 并返回。import 指明 bcryptjs；不声明具体部署成本或破解难度。",
+        "source_repository": "FlowiseAI/Flowise",
+        "source_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "source_file": "packages/server/src/enterprise/utils/encryption.util.ts",
+        "source_sha256": "e9dbf38e311e9807289e506263bf83295298f485c1ae1d0cd242658756cb79fe",
+        "review_range": "1-49",
+        "review_excerpt": "     1 | import bcrypt from 'bcryptjs'\n     2 | import { AES, enc } from 'crypto-js'\n     3 | import { getEncryptionKey } from '../../utils'\n     4 | \n     5 | export function getPasswordSaltRounds(): number {\n     6 |     return parseInt(process.env.PASSWORD_SALT_HASH_ROUNDS || '10', 10)\n     7 | }\n     8 | \n     9 | /**\n    10 |  * Extracts the cost factor (salt rounds) from a bcrypt hash using bcrypt.getRounds().\n    11 |  * @returns The number of rounds used, or null if the string is not a valid bcrypt hash.\n    12 |  */\n    13 | export function getBcryptRoundsFromHash(hash: string): number | null {\n    14 |     try {\n    15 |         return bcrypt.getRounds(hash)\n    16 |     } catch {\n    17 |         return null\n    18 |     }\n    19 | }\n    20 | \n    21 | /**\n    22 |  * Checks if a stored bcrypt hash was created with fewer rounds than the current minimum,\n    23 |  * and should be rehashed for stronger security.\n    24 |  * @param storedHash The bcrypt hash stored in the database.\n    25 |  * @param minRounds The minimum acceptable number of salt rounds (e.g. 10).\n    26 |  */\n    27 | export function hashNeedsUpgrade(storedHash: string, minRounds: number): boolean {\n    28 |     const rounds = getBcryptRoundsFromHash(storedHash)\n    29 |     return rounds !== null && rounds < minRounds\n    30 | }\n    31 | \n    32 | export function getHash(value: string) {\n    33 |     const salt = bcrypt.genSaltSync(getPasswordSaltRounds())\n    34 |     return bcrypt.hashSync(value, salt)\n    35 | }\n    36 | \n    37 | export function compareHash(value1: string, value2: string) {\n    38 |     return bcrypt.compareSync(value1, value2)\n    39 | }\n    40 | \n    41 | export async function encrypt(value: string) {\n    42 |     const encryptionKey = await getEncryptionKey()\n    43 |     return AES.encrypt(value, encryptionKey).toString()\n    44 | }\n    45 | \n    46 | export async function decrypt(value: string) {\n    47 |     const encryptionKey = await getEncryptionKey()\n    48 |     return AES.decrypt(value, encryptionKey).toString(enc.Utf8)\n    49 | }",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c08",
+        "repo_url": "https://github.com/FlowiseAI/Flowise",
+        "reviewed_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "getHash 在此使用 AES.encrypt 对密码做可逆加密并返回 AES 密文，可以通过同文件的 decrypt 函数还原。",
+            "node": {
+              "file": "packages/server/src/enterprise/utils/encryption.util.ts",
+              "line": 33,
+              "code": "    const salt = bcrypt.genSaltSync(getPasswordSaltRounds())"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "getHash 使用 bcrypt.genSaltSync/hashSync；AES.encrypt 和 AES.decrypt 位于另外的 encrypt/decrypt 函数，不是 getHash 的实现。",
+        "source_repository": "FlowiseAI/Flowise",
+        "source_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "source_file": "packages/server/src/enterprise/utils/encryption.util.ts",
+        "source_sha256": "e9dbf38e311e9807289e506263bf83295298f485c1ae1d0cd242658756cb79fe",
+        "review_range": "1-49",
+        "review_excerpt": "     1 | import bcrypt from 'bcryptjs'\n     2 | import { AES, enc } from 'crypto-js'\n     3 | import { getEncryptionKey } from '../../utils'\n     4 | \n     5 | export function getPasswordSaltRounds(): number {\n     6 |     return parseInt(process.env.PASSWORD_SALT_HASH_ROUNDS || '10', 10)\n     7 | }\n     8 | \n     9 | /**\n    10 |  * Extracts the cost factor (salt rounds) from a bcrypt hash using bcrypt.getRounds().\n    11 |  * @returns The number of rounds used, or null if the string is not a valid bcrypt hash.\n    12 |  */\n    13 | export function getBcryptRoundsFromHash(hash: string): number | null {\n    14 |     try {\n    15 |         return bcrypt.getRounds(hash)\n    16 |     } catch {\n    17 |         return null\n    18 |     }\n    19 | }\n    20 | \n    21 | /**\n    22 |  * Checks if a stored bcrypt hash was created with fewer rounds than the current minimum,\n    23 |  * and should be rehashed for stronger security.\n    24 |  * @param storedHash The bcrypt hash stored in the database.\n    25 |  * @param minRounds The minimum acceptable number of salt rounds (e.g. 10).\n    26 |  */\n    27 | export function hashNeedsUpgrade(storedHash: string, minRounds: number): boolean {\n    28 |     const rounds = getBcryptRoundsFromHash(storedHash)\n    29 |     return rounds !== null && rounds < minRounds\n    30 | }\n    31 | \n    32 | export function getHash(value: string) {\n    33 |     const salt = bcrypt.genSaltSync(getPasswordSaltRounds())\n    34 |     return bcrypt.hashSync(value, salt)\n    35 | }\n    36 | \n    37 | export function compareHash(value1: string, value2: string) {\n    38 |     return bcrypt.compareSync(value1, value2)\n    39 | }\n    40 | \n    41 | export async function encrypt(value: string) {\n    42 |     const encryptionKey = await getEncryptionKey()\n    43 |     return AES.encrypt(value, encryptionKey).toString()\n    44 | }\n    45 | \n    46 | export async function decrypt(value: string) {\n    47 |     const encryptionKey = await getEncryptionKey()\n    48 |     return AES.decrypt(value, encryptionKey).toString(enc.Utf8)\n    49 | }",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "semantic",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c09",
+        "repo_url": "https://github.com/FlowiseAI/Flowise",
+        "reviewed_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "critical_operation",
+            "text": "当前生产部署的 PASSWORD_SALT_HASH_ROUNDS 实际配置为 12，因此该部署当前 getHash 调用读取到的成本因子是 12。",
+            "node": {
+              "file": "packages/server/src/enterprise/utils/encryption.util.ts",
+              "line": 6,
+              "code": "    return parseInt(process.env.PASSWORD_SALT_HASH_ROUNDS || '10', 10)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "源码读取环境变量或默认 10。没有实际部署环境，因此不能确定是否设置为 12；默认 10 也不能反证某部署设置了 12。",
+        "source_repository": "FlowiseAI/Flowise",
+        "source_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "source_file": "packages/server/src/enterprise/utils/encryption.util.ts",
+        "source_sha256": "e9dbf38e311e9807289e506263bf83295298f485c1ae1d0cd242658756cb79fe",
+        "review_range": "1-49",
+        "review_excerpt": "     1 | import bcrypt from 'bcryptjs'\n     2 | import { AES, enc } from 'crypto-js'\n     3 | import { getEncryptionKey } from '../../utils'\n     4 | \n     5 | export function getPasswordSaltRounds(): number {\n     6 |     return parseInt(process.env.PASSWORD_SALT_HASH_ROUNDS || '10', 10)\n     7 | }\n     8 | \n     9 | /**\n    10 |  * Extracts the cost factor (salt rounds) from a bcrypt hash using bcrypt.getRounds().\n    11 |  * @returns The number of rounds used, or null if the string is not a valid bcrypt hash.\n    12 |  */\n    13 | export function getBcryptRoundsFromHash(hash: string): number | null {\n    14 |     try {\n    15 |         return bcrypt.getRounds(hash)\n    16 |     } catch {\n    17 |         return null\n    18 |     }\n    19 | }\n    20 | \n    21 | /**\n    22 |  * Checks if a stored bcrypt hash was created with fewer rounds than the current minimum,\n    23 |  * and should be rehashed for stronger security.\n    24 |  * @param storedHash The bcrypt hash stored in the database.\n    25 |  * @param minRounds The minimum acceptable number of salt rounds (e.g. 10).\n    26 |  */\n    27 | export function hashNeedsUpgrade(storedHash: string, minRounds: number): boolean {\n    28 |     const rounds = getBcryptRoundsFromHash(storedHash)\n    29 |     return rounds !== null && rounds < minRounds\n    30 | }\n    31 | \n    32 | export function getHash(value: string) {\n    33 |     const salt = bcrypt.genSaltSync(getPasswordSaltRounds())\n    34 |     return bcrypt.hashSync(value, salt)\n    35 | }\n    36 | \n    37 | export function compareHash(value1: string, value2: string) {\n    38 |     return bcrypt.compareSync(value1, value2)\n    39 | }\n    40 | \n    41 | export async function encrypt(value: string) {\n    42 |     const encryptionKey = await getEncryptionKey()\n    43 |     return AES.encrypt(value, encryptionKey).toString()\n    44 | }\n    45 | \n    46 | export async function decrypt(value: string) {\n    47 |     const encryptionKey = await getEncryptionKey()\n    48 |     return AES.decrypt(value, encryptionKey).toString(enc.Utf8)\n    49 | }",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c10",
+        "repo_url": "https://github.com/google/adk-python",
+        "reviewed_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用的代码片段与所列版本、文件和行号一致。",
+            "node": {
+              "file": "src/google/adk/cli/utils/agent_loader.py",
+              "line": 220,
+              "code": "    self._validate_agent_name(agent_name)"
+            }
+          }
+        ]
+      },
+      "expected": "supported",
+      "reference": {
+        "basis": "Git 对象与文件可读，指定行逐字符相等。",
+        "source_repository": "google/adk-python",
+        "source_commit": "116f75d2c9cd83a70c57b301b021182dd6f158f2",
+        "source_file": "src/google/adk/cli/utils/agent_loader.py",
+        "source_sha256": "d72c96adf9a2995a6bb870dc0c2d63451485854deeb8f8ed043ecb79f9bd951b",
+        "review_range": "185-265",
+        "review_excerpt": "   185 |         raise e\n   186 |       e.args = (\n   187 |           f\"Fail to load '{config_path}' config. {e.args[0] if e.args else ''}\",\n   188 |       ) + e.args[1:]\n   189 |       raise e\n   190 | \n   191 |   _VALID_AGENT_NAME_RE = re.compile(r\"^[a-zA-Z0-9_]+$\")\n   192 | \n   193 |   def _validate_agent_name(self, agent_name: str) -> None:\n   194 |     \"\"\"Validate agent name to prevent arbitrary module imports.\"\"\"\n   195 |     # Strip the special agent prefix for validation\n   196 |     if agent_name.startswith(\"__\"):\n   197 |       name_to_check = agent_name[2:]\n   198 |       check_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   199 |     else:\n   200 |       name_to_check = agent_name\n   201 |       check_dir = self.agents_dir\n   202 | \n   203 |     if not self._VALID_AGENT_NAME_RE.match(name_to_check):\n   204 |       raise ValueError(\n   205 |           f\"Invalid agent name: {agent_name!r}. Agent names must be valid\"\n   206 |           \" Python identifiers (letters, digits, and underscores only).\"\n   207 |       )\n   208 | \n   209 |     # Verify the agent exists on disk before allowing import\n   210 |     agent_path = Path(check_dir) / name_to_check\n   211 |     agent_file = Path(check_dir) / f\"{name_to_check}.py\"\n   212 |     if not (agent_path.is_dir() or agent_file.is_file()):\n   213 |       raise ValueError(\n   214 |           f\"Agent not found: {agent_name!r}. No matching directory or module\"\n   215 |           f\" exists in '{os.path.join(check_dir, name_to_check)}'.\"\n   216 |       )\n   217 | \n   218 |   def _perform_load(self, agent_name: str) -> Union[BaseAgent, App]:\n   219 |     \"\"\"Internal logic to load an agent\"\"\"\n   220 |     self._validate_agent_name(agent_name)\n   221 |     # Determine the directory to use for loading\n   222 |     if agent_name.startswith(\"__\"):\n   223 |       # Special agent: use special agents directory\n   224 |       agents_dir = os.path.abspath(SPECIAL_AGENTS_DIR)\n   225 |       # Remove the double underscore prefix for the actual agent name\n   226 |       actual_agent_name = agent_name[2:]\n   227 |       # If this special agents directory is part of a package (has __init__.py\n   228 |       # up the tree), build a fully-qualified module path so the built-in agent\n   229 |       # can continue to use relative imports. Otherwise, fall back to importing\n   230 |       # by module name relative to agents_dir.\n   231 |       module_base_name = actual_agent_name\n   232 |       package_parts: list[str] = []\n   233 |       package_root: Optional[Path] = None\n   234 |       current_dir = Path(agents_dir).resolve()\n   235 |       while True:\n   236 |         if not (current_dir / \"__init__.py\").is_file():\n   237 |           package_root = current_dir\n   238 |           break\n   239 |         package_parts.append(current_dir.name)\n   240 |         current_dir = current_dir.parent\n   241 |       if package_parts:\n   242 |         package_parts.reverse()\n   243 |         module_base_name = \".\".join(package_parts + [actual_agent_name])\n   244 |         if str(package_root) not in sys.path:\n   245 |           sys.path.insert(0, str(package_root))\n   246 |     else:\n   247 |       # Regular agent: use the configured agents directory\n   248 |       agents_dir = self.agents_dir\n   249 |       actual_agent_name = agent_name\n   250 |       module_base_name = actual_agent_name\n   251 | \n   252 |     # Add agents_dir to sys.path\n   253 |     if agents_dir not in sys.path:\n   254 |       sys.path.insert(0, agents_dir)\n   255 | \n   256 |     logger.debug(\"Loading .env for agent %s from %s\", agent_name, agents_dir)\n   257 |     envs.load_dotenv_for_agent(actual_agent_name, str(agents_dir))\n   258 | \n   259 |     if root_agent := self._load_from_module_or_package(module_base_name):\n   260 |       self._record_origin_metadata(\n   261 |           loaded=root_agent,\n   262 |           expected_app_name=agent_name,\n   263 |           module_name=module_base_name,\n   264 |           agents_dir=agents_dir,\n   265 |       )",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c11",
+        "repo_url": "https://github.com/PrefectHQ/fastmcp",
+        "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用的代码片段与所列版本、文件和行号一致。",
+            "node": {
+              "file": "src/fastmcp/utilities/openapi/director.py",
+              "line": 214,
+              "code": "                safe_value = str(param_value)"
+            }
+          }
+        ]
+      },
+      "expected": "contradicted",
+      "reference": {
+        "basis": "故意将真实编码表达式替换成 str(param_value)；指定行不匹配。",
+        "source_repository": "PrefectHQ/fastmcp",
+        "source_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+        "source_file": "src/fastmcp/utilities/openapi/director.py",
+        "source_sha256": "88e62a5d8f11a1584c87a6ea0a021d9ca99bfdf49cbf53b577ec2eee4f2e3d53",
+        "review_range": "179-222",
+        "review_excerpt": "   179 |                     and body_schema.get(\"type\") == \"object\"\n   180 |                 ):\n   181 |                     body = body_props\n   182 |                 elif len(body_props) == 1:\n   183 |                     # If body schema is not an object and we have exactly one property,\n   184 |                     # use the property value directly\n   185 |                     body = next(iter(body_props.values()))\n   186 |                 else:\n   187 |                     # Multiple properties but schema is not object - wrap in object\n   188 |                     body = body_props\n   189 |             else:\n   190 |                 body = body_props\n   191 | \n   192 |         return path_params, query_params, header_params, body\n   193 | \n   194 |     def _build_url(\n   195 |         self, path_template: str, path_params: dict[str, Any], base_url: str\n   196 |     ) -> str:\n   197 |         \"\"\"\n   198 |         Build URL by substituting path parameters in the template.\n   199 | \n   200 |         Args:\n   201 |             path_template: OpenAPI path template (e.g., \"/users/{id}\")\n   202 |             path_params: Path parameter values\n   203 |             base_url: Base URL to prepend\n   204 | \n   205 |         Returns:\n   206 |             Complete URL with path parameters substituted\n   207 |         \"\"\"\n   208 |         # Substitute path parameters with URL-encoding to prevent\n   209 |         # path traversal and SSRF via crafted parameter values\n   210 |         url_path = path_template\n   211 |         for param_name, param_value in path_params.items():\n   212 |             placeholder = f\"{{{param_name}}}\"\n   213 |             if placeholder in url_path:\n   214 |                 safe_value = quote(str(param_value), safe=\"\").replace(\".\", \"%2E\")\n   215 |                 url_path = url_path.replace(placeholder, safe_value)\n   216 | \n   217 |         # Combine with base URL\n   218 |         return urljoin(base_url.rstrip(\"/\") + \"/\", url_path.lstrip(\"/\"))\n   219 | \n   220 | \n   221 | # Export public symbols\n   222 | __all__ = [\"RequestDirector\"]",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    },
+    {
+      "stratum": "control",
+      "authorship": "newly authored source-grounded development claim",
+      "request": {
+        "schema_version": "1.0",
+        "case_id": "c12",
+        "repo_url": "https://github.com/FlowiseAI/Flowise",
+        "reviewed_commit": "0000000000000000000000000000000000000000",
+        "report_text": "",
+        "source_link": "",
+        "vuln_ids": [],
+        "claims": [
+          {
+            "claim_id": "claim-1",
+            "kind": "source_location",
+            "text": "引用的代码片段与所列版本、文件和行号一致。",
+            "node": {
+              "file": "packages/server/src/enterprise/utils/encryption.util.ts",
+              "line": 34,
+              "code": "    return bcrypt.hashSync(value, salt)"
+            }
+          }
+        ]
+      },
+      "expected": "uncertain",
+      "reference": {
+        "basis": "输入改成不可读取的全零 Commit。参考不能借另外版本的同名文件代替所声明版本。",
+        "source_repository": "FlowiseAI/Flowise",
+        "source_commit": "9291856d1ea4a4ceea9f8fef8ce14f4f6c81e8eb",
+        "source_file": "packages/server/src/enterprise/utils/encryption.util.ts",
+        "source_sha256": "e9dbf38e311e9807289e506263bf83295298f485c1ae1d0cd242658756cb79fe",
+        "review_range": "1-49",
+        "review_excerpt": "     1 | import bcrypt from 'bcryptjs'\n     2 | import { AES, enc } from 'crypto-js'\n     3 | import { getEncryptionKey } from '../../utils'\n     4 | \n     5 | export function getPasswordSaltRounds(): number {\n     6 |     return parseInt(process.env.PASSWORD_SALT_HASH_ROUNDS || '10', 10)\n     7 | }\n     8 | \n     9 | /**\n    10 |  * Extracts the cost factor (salt rounds) from a bcrypt hash using bcrypt.getRounds().\n    11 |  * @returns The number of rounds used, or null if the string is not a valid bcrypt hash.\n    12 |  */\n    13 | export function getBcryptRoundsFromHash(hash: string): number | null {\n    14 |     try {\n    15 |         return bcrypt.getRounds(hash)\n    16 |     } catch {\n    17 |         return null\n    18 |     }\n    19 | }\n    20 | \n    21 | /**\n    22 |  * Checks if a stored bcrypt hash was created with fewer rounds than the current minimum,\n    23 |  * and should be rehashed for stronger security.\n    24 |  * @param storedHash The bcrypt hash stored in the database.\n    25 |  * @param minRounds The minimum acceptable number of salt rounds (e.g. 10).\n    26 |  */\n    27 | export function hashNeedsUpgrade(storedHash: string, minRounds: number): boolean {\n    28 |     const rounds = getBcryptRoundsFromHash(storedHash)\n    29 |     return rounds !== null && rounds < minRounds\n    30 | }\n    31 | \n    32 | export function getHash(value: string) {\n    33 |     const salt = bcrypt.genSaltSync(getPasswordSaltRounds())\n    34 |     return bcrypt.hashSync(value, salt)\n    35 | }\n    36 | \n    37 | export function compareHash(value1: string, value2: string) {\n    38 |     return bcrypt.compareSync(value1, value2)\n    39 | }\n    40 | \n    41 | export async function encrypt(value: string) {\n    42 |     const encryptionKey = await getEncryptionKey()\n    43 |     return AES.encrypt(value, encryptionKey).toString()\n    44 | }\n    45 | \n    46 | export async function decrypt(value: string) {\n    47 |     const encryptionKey = await getEncryptionKey()\n    48 |     return AES.decrypt(value, encryptionKey).toString(enc.Utf8)\n    49 | }",
+        "reviewer": "development agent; no independent human review",
+        "deployment_state_provided": false
+      }
+    }
+  ]
+}

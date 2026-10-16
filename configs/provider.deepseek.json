@@ -1,0 +1,10 @@
+{
+  "type": "json_command",
+  "name": "deepseek",
+  "argv": [
+    "python3",
+    "-m",
+    "vulngym_agent.deepseek_provider"
+  ],
+  "timeout_seconds": 240
+}

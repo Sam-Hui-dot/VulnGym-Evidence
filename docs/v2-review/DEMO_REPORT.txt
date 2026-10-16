@@ -1,0 +1,24 @@
+FastMCP 报告复核演示
+
+来源说明：这是一份基于公开固定版本源码构造的教学演示报告，不是实际漏洞举报，也不表示发现了新的漏洞。以下内容是待核查说法，未附参考答案。
+
+代码仓库：https://github.com/PrefectHQ/fastmcp
+代码版本：40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71
+
+一、引用位置
+报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：
+                url_path = url_path.replace(placeholder, safe_value)
+
+二、操作描述
+这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。
+引用文件：src/fastmcp/utilities/openapi/director.py
+引用行号：215
+引用代码：
+                url_path = url_path.replace(placeholder, safe_value)
+
+三、防护范围
+这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。
+引用文件：src/fastmcp/utilities/openapi/director.py
+引用行号：71
+引用代码：
+        return httpx.Request(

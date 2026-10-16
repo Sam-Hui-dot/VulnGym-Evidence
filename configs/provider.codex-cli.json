@@ -1,0 +1,11 @@
+{
+  "type": "json_command",
+  "name": "windows-codex-cli",
+  "argv": [
+    "python3",
+    "-m",
+    "vulngym_agent.codex_cli_provider"
+  ],
+  "timeout_seconds": 960
+}
+

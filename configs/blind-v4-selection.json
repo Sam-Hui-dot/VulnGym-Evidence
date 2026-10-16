@@ -1,0 +1,222 @@
+{
+  "evaluation_id": "blind-v4",
+  "selection_status": "frozen",
+  "selection_date": "2026-09-03",
+  "reference_ref": "v0.1.4",
+  "semantic_behavior_base_commit": "081bd14a0c20d4b074c8aa1e613de4b9096e3fd3",
+  "freeze_commit_status": "commit this selection, evidence manifest and protocol before any Blind v4 model call",
+  "run_settings": {
+    "model": "deepseek-v4-pro",
+    "reasoning_effort": "high",
+    "max_output_tokens": 12288,
+    "provider_config": "configs/provider.deepseek.json",
+    "provider_process_timeout_seconds": 240,
+    "context_lines": 12,
+    "stages": ["judge", "critic"],
+    "concurrency": 2,
+    "retry_policy": "only existing transport and schema-contract retries in frozen semantic_runner; no manual answer-based retry",
+    "missing_policy": "retain errors and incomplete rows; score missing predictions explicitly, never drop their cases"
+  },
+  "frozen_versions": {
+    "evidence_packet": "0.7.0",
+    "workflow": "0.1.0",
+    "judge_prompt": "1.5.0",
+    "critic_prompt": "1.5.0"
+  },
+  "policy": {
+    "purpose": "entry-and-report-isolated evaluation after post-v3 hardening and Prompt 1.5.0, with AI-assisted evidence-reviewed labels",
+    "not_official_hidden_test": true,
+    "repository_isolation": false,
+    "repository_isolation_reason": "VulnGym v0.1.4 has no untouched upstream repository after prior development rounds",
+    "entry_and_report_isolation": true,
+    "review_before_model_run": true,
+    "no_tuning_on_results": true,
+    "failure_policy": "retain the first attempted Blind v4 run including failures; any result-driven change requires a new evaluation id",
+    "not_independent_expert_gold": true,
+    "reference_isolation": "Reference labels and review notes must never be passed to the model; only candidate records and public source/advisory/patch evidence are inputs.",
+    "field_policy": "Judge the whole field including material descriptive claims. Accept explanatory code comments, defensible alternate sinks and omitted implicit edges. Do not equate missing detail with contradiction. Use uncertain for ambiguous scope wording.",
+    "reference_scope": "eight unseen entries and reports across eight repositories, reviewed against fixed source, advisory, patch and taxonomy before prediction"
+  },
+  "excluded_development_entry_ids": [
+    "entry-00057", "entry-00058", "entry-00061", "entry-00062", "entry-00064", "entry-00065",
+    "entry-00066", "entry-00071", "entry-00074", "entry-00080", "entry-00082", "entry-00084",
+    "entry-00087", "entry-00090", "entry-00097", "entry-00102", "entry-00107", "entry-00114",
+    "entry-00119", "entry-00121", "entry-00122", "entry-00146", "entry-00153", "entry-00271",
+    "entry-00311", "entry-00314", "entry-00319", "entry-00320", "entry-00334", "entry-00335",
+    "entry-00341", "entry-00352", "entry-00383", "entry-00389", "entry-00394", "entry-00410",
+    "entry-00419", "entry-00430", "entry-00437", "entry-00438", "entry-00462", "entry-00464",
+    "entry-00507"
+  ],
+  "excluded_development_report_ids": [
+    "GHSA-265W-RF2W-CJH4", "GHSA-345P-7CG4-V4C7", "GHSA-4X5P-F36R-MXXR",
+    "GHSA-58JC-RCG5-95F3", "GHSA-5H2M-4Q8J-PQPJ", "GHSA-64QX-VPXX-MVQF",
+    "GHSA-69FQ-XP46-6X23", "GHSA-6QV9-48XG-FC7F", "GHSA-75HX-XJ24-MQRW",
+    "GHSA-78H3-63C4-5FQC", "GHSA-7PPG-37FH-VCR6", "GHSA-8X34-9Q3V-H7G8",
+    "GHSA-9379-MWVR-7WXX", "GHSA-9G95-QF3F-GGRW", "GHSA-9P3R-HH9G-5CMG",
+    "GHSA-C5CP-VX83-JHQX", "GHSA-C6XV-RCVW-V685", "GHSA-CCJ6-79J6-CQ5Q",
+    "GHSA-F6MR-38G8-39RG", "GHSA-FJH6-8679-9PCH", "GHSA-G2J9-7RJ2-GM6C",
+    "GHSA-H3F9-MJWJ-W476", "GHSA-J4P8-H8MH-RH8Q", "GHSA-JJHC-V7C2-5HH6",
+    "GHSA-JM6W-M3J8-898G", "GHSA-M4JW-WGMF-889X", "GHSA-MHJQ-8C7M-3F7P",
+    "GHSA-Q2HG-643C-GW8H", "GHSA-Q56X-G2FJ-4RJ6", "GHSA-R277-3XC5-C79V",
+    "GHSA-RG7C-G689-FR3X", "GHSA-RV39-79C4-7459", "GHSA-RVHJ-8CHJ-8V3C",
+    "GHSA-V4PR-FM98-W9PG", "GHSA-V5W9-PRXF-W882", "GHSA-V7V2-M736-CF3C",
+    "GHSA-V98V-FF95-F3CP", "GHSA-VV7Q-7JX5-F767", "GHSA-W7XJ-8FX7-WFCH",
+    "GHSA-X39M-3393-3QP4", "GHSA-XFQJ-R5QW-8G4J", "GHSA-XP9R-PRPG-373R",
+    "GHSA-XVH5-5QG4-X9QP"
+  ],
+  "cases": [
+    {
+      "case_id": "blind-v4-history-entry-00110",
+      "kind": "history_revision",
+      "entry_id": "entry-00110",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": ["entry_point.code", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "n8n stored XSS source-to-DOM chain and sink abstraction",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-source and official-advisory review; not independent expert Gold",
+        "labels": {"entry_point":"correct","critical_operation":"correct","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"correct"},
+        "notes": {
+          "basis": "Candidate Markdown.vue at 8a5d4d5 reads props.content at 109 and uses v-html at 235. md.render, the YouTube renderer and the unsafe src serialization form a defensible chain. The endpoint need not be identical to the later dataset's sanitizer-return sink.",
+          "annotation_policy": "Inline explanatory comments are not claimed to be literal upstream comments. They do not negate an otherwise matching operation. Browser interpretation occurs after return; the trace is treated as a dataflow explanation, not as a claim that return executes JavaScript.",
+          "commit": "Fixed candidate source contains the unsafe YouTube query/attribute handling described by the advisory. Related upstream patch 3b9203e9 is not an ancestor-based fix anchor for this candidate and is not put in the fix map.",
+          "source": "https://github.com/advisories/GHSA-qpq4-pw7f-pp8w"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-history-entry-00258",
+      "kind": "history_revision",
+      "entry_id": "entry-00258",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": ["entry_point.line", "entry_point.code", "critical_operation.file", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "Flowise trusted-header authorization bypass with alternate affected operation",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source and official-advisory review; not independent expert Gold",
+        "labels":{"entry_point":"correct","critical_operation":"correct","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_point":"index.ts:229 is the actual header-controlled branch. This does not imply that downstream JWT and role checks disappear.",
+          "critical_operation":"controllers/apikey/index.ts:30 creates an API key; the advisory itself uses API-key operations. The current dataset's credential-update sink is not the only defensible affected operation.",
+          "trace":"Nodes 0, 1, 2 and 4 have line 0. These are not valid source anchors; the error is location reliability, not the choice of API-key operation.",
+          "commit":"55b6913c is the 3.0.12 source and contains the described branch. Release 3.0.13 is advisory metadata, not proof that any arbitrary release diff fixes this issue.",
+          "source":"https://github.com/advisories/GHSA-wvhq-wp8g-c7vq"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-history-entry-00313",
+      "kind": "history_revision",
+      "entry_id": "entry-00313",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": ["entry_point.line", "entry_point.code", "critical_operation.line", "critical_operation.code", "trace"],
+      "focus": "Airflow wildcard DAG authorization and historical source anchors",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source, official-advisory and patch review; not independent expert Gold",
+        "labels":{"entry_point":"incorrect","critical_operation":"incorrect","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_point":"Claimed route at dag_versions.py:101 is actually a sort-parameter line. The route is at 77-85.",
+          "critical_operation":"Claimed paginated_select at 128 is actually a response field; the relevant query is at 117-124.",
+          "trace":"Declared lines 108, 133, 124 and 253 do not locate the claimed statements at this commit; actual function, wildcard branch, filter condition and factory appear elsewhere.",
+          "commit":"Official PR 61675 merge 197edfd8 adds readable_dag_versions_filter and the permitted-DAG-version filter to the candidate's affected query.",
+          "source":"https://github.com/advisories/GHSA-4m3h-wp5w-5hqh"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-history-entry-00317",
+      "kind": "history_revision",
+      "entry_id": "entry-00317",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": ["entry_point.code", "critical_operation.code", "trace"],
+      "focus": "Langflow API-key IDOR with unlocatable historical trace nodes",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source, official-advisory and patch review; not independent expert Gold",
+        "labels":{"entry_point":"correct","critical_operation":"correct","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_point":"api/v1/api_key.py:44 is the deletion route. The trailing explanation does not change the source operation.",
+          "critical_operation":"crud.py:45 looks up the caller-selected ApiKey without an ownership filter, a valid authorization-failure point before deletion.",
+          "trace":"Nodes 0 and 2 use line 0. Node 1 at route line 50 alone does not make the whole claimed trace locatable.",
+          "commit":"Official fix fdc1b3b1 adds the current-user dependency, passes the user ID and rejects another user's key before deleting it.",
+          "source":"https://github.com/advisories/GHSA-rf6x-r45m-xv3w"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-clean-entry-00276",
+      "kind": "clean",
+      "entry_id": "entry-00276",
+      "expected_changed_fields": [],
+      "focus": "WeKnora DNS-rebinding SSRF lifecycle",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source, official-advisory and patch review; not independent expert Gold",
+        "labels":{"entry_point":"correct","critical_operation":"correct","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_and_sink":"Execute at web_fetch.go:89 accepts the requested URL. Navigate at 413 is inside the chromedp.Run call at 412, so it is a defensible fetching sink, not merely an unexecuted task constructor.",
+          "trace":"Node 7 claims fetchHTMLContent selects Chrome according to whether JS rendering is needed. At 365-374 it always tries Chrome first, then HTTP on error/empty content. This is an explicit false branch-selection claim, not an omitted helper. The DNS-rebinding vulnerability itself is supported.",
+          "commit":"Candidate a5d1233b lacks pinning; reviewed repository commit 2b3f76e4 introduces validated IP propagation and Chrome host-resolver-rules and is in v0.3.0.",
+          "source":"https://github.com/advisories/GHSA-h6gw-8f77-mmmp"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-clean-entry-00446",
+      "kind": "clean",
+      "entry_id": "entry-00446",
+      "expected_changed_fields": [],
+      "focus": "Paperclip cleanup command injection end-to-end chain",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source and official-advisory review; not independent expert Gold",
+        "labels":{"entry_point":"correct","critical_operation":"correct","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"correct"},
+        "notes": {
+          "source_chain":"execution-workspaces.ts:423 PATCH -> 448 merged metadata -> 454 parsed cleanup config -> archive branch and 535 cleanup argument; workspace-runtime.ts:1339 collects commands, 1352 records/runs them, 851-854 selects the shell and -c argument, 479 spawns.",
+          "scope":"The route has company-access and archival-readiness conditions. The candidate does not explicitly deny them. Missing ancillary checks are not treated as a false chain; the shell-bound command path exists when these preconditions hold.",
+          "commit":"The fixed candidate contains the command path described by the advisory. The advisory names a patched release but no atomic fix; broader route-hardening is not asserted to eliminate all shell execution.",
+          "source":"https://github.com/advisories/GHSA-vr7g-88fq-vhq3"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-clean-entry-00171",
+      "kind": "clean",
+      "entry_id": "entry-00171",
+      "expected_changed_fields": [],
+      "focus": "MLflow hard-coded Basic Auth default credentials",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source and official-advisory review; not independent expert Gold",
+        "labels":{"entry_point":"incorrect","critical_operation":"incorrect","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_point":"The INI line is genuine, but the field explicitly says it is read unconditionally at first startup. config.py:16-25 first honors MLFLOW_AUTH_CONFIG_PATH; create_admin_user:685 also guards existing users. The default-deployment vulnerability remains real.",
+          "critical_operation":"The admin early return at 493-494 is real. However, its causal explanation asserts authenticate_request writes the admin identity into request context. It simply calls the configured function at 444-447; sender_is_admin independently authenticates again and fetches the stored role at 317-320. The full field's claimed handoff is false.",
+          "trace":"Nodes 7 and 8 repeat the nonexistent request-context handoff. Node 6 also names bcrypt although the source imports Werkzeug check_password_hash/generate_password_hash. The context mechanism, not a missing intermediate node, is the decisive error.",
+          "commit":"The candidate contains the public default credential and affected Basic Auth flow. Linked advisory patch 5bf2ec2b changes artifact traversal in file_store.py, not this flow; it is explicitly not accepted as the credential fix.",
+          "source":"https://github.com/advisories/GHSA-gq3w-7jj3-x7gr"
+        }
+      }
+    },
+    {
+      "case_id": "blind-v4-clean-entry-00376",
+      "kind": "clean",
+      "entry_id": "entry-00376",
+      "expected_changed_fields": [],
+      "focus": "Open WebUI cross-user file overwrite authorization failure",
+      "review": {
+        "status":"reviewed",
+        "reviewer":"AI-assisted fixed-source and official-advisory review; not independent expert Gold",
+        "labels":{"entry_point":"uncertain","critical_operation":"incorrect","vuln_category_l1":"correct","vuln_category_l2":"correct","vuln_title":"correct","vuln_ids":"correct","commit":"correct","trace":"incorrect"},
+        "notes": {
+          "entry_point":"GET knowledge files at 589 is a defensible upstream reconnaissance entry, but 'any authenticated user may call' is ambiguous about shared-read permission. The source at 608-622 requires admin, owner or a read grant. Do not force this wording to mean either arbitrary-KB access or a correctly scoped shared-KB request.",
+          "critical_operation":"retrieval.py:2805 is the unauthorized DB write. Its description additionally assigns vector-store persistence to that call; the source performs the vector write earlier at 2794-2801, then updates the relational file record. Full-field side-effect attribution is incorrect.",
+          "trace":"Node 1 explicitly says there is only authentication and any user can query any KB, contradicted by knowledge.py:608-622. This is stronger than the ambiguous entry wording and contradicts the advisory's shared-read-access prerequisite.",
+          "commit":"The fixed candidate contains the unowned batch write and the read-access check; the advisory's affected release range is consistent. No authoritative atomic fix was selected.",
+          "source":"https://github.com/advisories/GHSA-jjp7-g2jw-wh3j"
+        }
+      }
+    }
+  ]
+}

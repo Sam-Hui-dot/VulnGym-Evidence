@@ -1,0 +1,1 @@
+{"entry_id":"entry-example","labels":{"entry_point":"correct","critical_operation":"incorrect","vuln_category_l1":"correct","vuln_category_l2":"uncertain","vuln_title":"correct","trace":"incorrect"},"reviewer":"human-reviewer","reviewed_at":"2026-08-25","notes":"Example only; replace with independently reviewed evidence-based labels."}

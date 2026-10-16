@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+build/
+dist/
+*.egg-info/
+out/
+.env
+.env.*
+!.env.example
+materials/PrefectHQ/
+materials/encode/
+*.log

@@ -1,0 +1,10 @@
+{
+  "type": "json_command",
+  "name": "qwen",
+  "argv": [
+    "python3",
+    "-m",
+    "vulngym_agent.qwen_provider"
+  ],
+  "timeout_seconds": 240
+}

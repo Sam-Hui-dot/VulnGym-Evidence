@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="evidence-token" content="__TOKEN__">
+  <title>VulnGym Evidence · 报告复核</title>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/polish.css"><script src="/app.js" type="module"></script>
+</head>
+<body>
+<header class="top"><div class="brand"><span class="brand-mark" aria-hidden="true">E</span><b>VulnGym Evidence</b></div><div class="top-right"><button class="text-button" id="usage-guide">使用引导</button><button class="text-button" id="history">最近任务</button><button class="text-button" id="about">关于</button><button class="model-status" id="model-settings" aria-label="打开模型设置"><b>模型设置</b><span id="mode" role="status">正在连接服务…</span></button></div></header>
+<main class="frame">
+  <nav class="workflow" aria-label="核对步骤"><div class="steps"><button class="step active" data-view="import"><i>1</i>导入材料</button><button class="step" data-view="confirm"><i>2</i>确认内容</button><button class="step" data-view="results"><i>3</i>查看结果</button></div><span class="workflow-note" id="workflow-note">对照代码，核对报告</span></nav>
+  <aside class="case-guide hidden" id="case-guide" aria-label="案例教学"><div aria-live="polite"><span class="guide-label">跟着案例走一遍 · 无需 Key</span><strong id="guide-title"></strong><p id="guide-text"></p></div><button class="secondary" id="exit-guide">退出教学</button></aside>
+  <section class="view active" id="import">
+    <div class="page-head"><div><h1>对照源码，核对漏洞报告</h1><p class="page-description">连接项目，导入报告，逐条查看源码依据。</p></div><div class="head-actions"><button class="secondary demo-entry" id="start-guide">跟着案例走一遍</button><button class="text-button" id="view-demo">直接看演示结果</button></div></div>
+    <div class="import-grid">
+      <aside class="card project-card"><div class="project-chip"><div class="project-icon" id="project-icon">+</div><div><strong id="project-name">选择核对项目</strong><span class="subtle" id="project-type">连接自己的源码，或体验案例</span></div></div>
+        <div class="project-entry"><button class="primary" id="change-project">连接我的项目</button><button class="secondary" id="load-demo">加载案例报告</button></div>
+        <div class="project-selection hidden" id="project-selection"><span class="field-label">已选代码项目</span><div class="project-url" id="repo-name"></div></div>
+        <div id="version-section" class="hidden"><span class="field-label">代码版本</span><div class="version-line"><code id="version-short"></code><button class="text-button" id="show-version">版本详情</button></div></div>
+        <div class="subtle version-detail" id="repository-state" role="status">先选择项目。</div>
+        <div class="setup-card" id="setup-card"><span id="setup-message">正在读取模型配置…</span></div>
+        <details class="project-footer advanced-options" id="advanced-options"><summary>高级选项</summary><div class="advanced-actions"><button class="text-button" id="import-json">导入声明 JSON</button><button class="text-button" id="settings">报告附加信息</button><button class="text-button" id="repository-help">源码接入说明</button><button class="text-button" id="prepared-demo">案例引用核对（无需 Key）</button><button class="text-button" id="other-examples">其他教学案例</button></div></details>
+      </aside>
+      <article class="card report-card"><div class="section-head"><label for="report">报告全文</label><div class="head-actions"><button class="text-button" id="import-report">导入报告</button><input type="file" id="report-file" accept=".md,.txt" hidden><button class="text-button" id="clear-report">清空</button></div></div><textarea class="report-text report-editor" id="report" spellcheck="false" aria-label="报告全文" placeholder="粘贴漏洞报告，或点击右上方“导入报告”。"></textarea><div class="report-caption"><span id="report-source">报告需包含文件位置与引用代码</span><span id="draft-state">草稿仅保存在当前浏览器标签页</span></div></article>
+    </div>
+  </section>
+  <section class="view" id="confirm">
+    <div class="page-head"><h1>确认要核对的内容</h1><div class="head-actions"><small id="selected-count"></small><button class="text-button" id="manual-claim">手动添加</button><button class="text-button" id="extraction-record">提取记录</button></div></div>
+    <div class="confirmation-grid">
+      <article class="card original-card"><div class="section-head"><span class="original-title">报告原句</span><button class="text-button" id="edit-candidate">编辑核查项</button></div><div class="reading-area"><textarea class="report-text quote" id="candidate-quote" readonly aria-label="当前核查项的报告原句"></textarea><div class="pager" id="quote-pager"></div></div><div class="origin-location" id="candidate-location"></div><div class="candidate-warning" id="candidate-warning"></div><div class="original-foot"><button class="text-button" id="whole-report">查看完整报告</button><button class="text-button" id="remove-candidate">移除本项</button></div></article>
+      <article class="card candidates-panel"><div class="candidate-list" id="candidate-list" aria-label="待核对内容"></div><div class="pager" id="candidate-pager"></div></article>
+    </div>
+  </section>
+  <section class="view" id="results">
+    <div class="page-head"><h1 id="results-heading">核对结果</h1><small id="job-summary"></small></div>
+    <div class="card results-grid">
+      <aside class="result-list"><div class="list-title">点击查看依据</div><div class="result-buttons" id="result-list"></div><div class="pager" id="result-pager"></div><button class="text-button" id="run-record">运行记录</button></aside>
+      <article class="result-right"><div class="result-summary"><span class="pill" id="result-state"></span><h2 id="result-title">正在复核</h2><button class="text-button copy-review" id="copy-review">复制复核意见</button></div><button class="result-original" id="result-original"><span>报告说</span><span id="result-quote"></span><span>查看原句</span></button><div class="reading-area reason-area"><textarea class="report-text result-reason" id="result-reason" readonly aria-label="实际复核理由"></textarea><div class="pager" id="reason-pager"></div></div><div class="code-block" id="code-block"><div class="code-header"><span id="code-file">源码证据</span><button class="text-button" id="source-detail">展开上下文</button></div><div class="source-reader" id="code" aria-label="实际源码摘录"></div></div><div class="gap-panel hidden" id="gap-panel"></div><div class="advice-row" id="result-advice"></div><div class="extra-line"><span id="result-note">读取本地证据…</span><button class="text-button" id="result-detail">复核详情</button></div></article>
+    </div>
+  </section>
+  <footer class="footer"><div class="footer-left"><span id="footer-tip" role="status" aria-live="polite">选项目，粘贴报告。</span></div><div class="footer-actions"><button class="secondary hidden" id="recover">恢复任务</button><button class="secondary hidden" id="back-button">上一步</button><button class="secondary hidden" id="save-input">保存输入</button><button class="secondary hidden" id="new-task">新报告</button><div class="export-wrap hidden" id="export-wrap"><div class="export-menu hidden" id="export-menu"><a id="download-md" download="report.md">Markdown 报告</a><a id="download-html" target="_blank" rel="noopener">完整 HTML 报告</a><a id="download-json" download="result.json">结果 JSON</a></div><button class="primary" id="export-button" aria-expanded="false">导出报告 ▾</button></div><button class="primary" id="next-button">提取核查内容 →</button></div></footer>
+</main>
+<dialog id="detail-dialog"><div class="dialog-head"><h2 id="dialog-title"></h2><button id="close-dialog" aria-label="关闭详情">×</button></div><div class="dialog-body" id="dialog-body"></div></dialog>
+<div class="toast hidden" id="toast" role="alert"></div>
+</body></html>

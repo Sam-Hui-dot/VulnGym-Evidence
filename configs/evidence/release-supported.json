@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "case_id": "release-source-supported",
+  "repo_url": "https://github.com/Tencent/WeKnora",
+  "reviewed_commit": "a20541cd9d0a54dbff0b9112f1299c64347370ff",
+  "report_text": "开发示例：从已见 T1 材料选择一个源码位置，仅核对引用位置，不声称本次已验证整个漏洞。",
+  "source_link": "https://github.com/advisories/GHSA-78h3-63c4-5fqc",
+  "vuln_ids": [
+    "CVE-2026-22688",
+    "GHSA-78H3-63C4-5FQC"
+  ],
+  "claims": [
+    {
+      "claim_id": "entry-location",
+      "kind": "source_location",
+      "text": "该版本 internal/handler/mcp_service.go 第 41 行包含报告引用的 ShouldBindJSON 代码。",
+      "node": {
+        "file": "internal/handler/mcp_service.go",
+        "line": 41,
+        "code": "\tif err := c.ShouldBindJSON(&service); err != nil {"
+      }
+    }
+  ]
+}

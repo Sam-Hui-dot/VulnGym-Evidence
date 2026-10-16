@@ -1,0 +1,29 @@
+{
+  "evaluation_id": "final-blind-v1",
+  "selection_status": "frozen_before_model_run",
+  "selection_date": "2026-09-10",
+  "purpose": "Five-repository, three-language positive-control validation of Packet 0.11.0; not an official hidden-set benchmark or independent expert Gold.",
+  "cases": [
+    {"entry_id": "entry-00062", "project": "open-webui", "language": "Python", "report_id": "GHSA-C6XV-RCVW-V685"},
+    {"entry_id": "entry-00063", "project": "FlowiseAI/Flowise", "language": "TypeScript", "report_id": "GHSA-V5W9-PRXF-W882"},
+    {"entry_id": "entry-00072", "project": "langflow-ai/langflow", "language": "Python", "report_id": "GHSA-C5CP-VX83-JHQX"},
+    {"entry_id": "entry-00082", "project": "n8n-io/n8n", "language": "TypeScript", "report_id": "GHSA-V98V-FF95-F3CP"},
+    {"entry_id": "entry-00272", "project": "Tencent/WeKnora", "language": "Go", "report_id": "GHSA-CCJ6-79J6-CQ5Q"}
+  ],
+  "run_settings": {
+    "provider_config": "configs/provider.qwen.json",
+    "model": "qwen3.8-flash",
+    "enable_thinking": false,
+    "critic_policy": "review-risk",
+    "maximum_cases": 5,
+    "maximum_total_api_calls": 8
+  },
+  "policy": {
+    "entry_and_report_isolation_from_prior_frozen_selections": true,
+    "review_before_model_run": true,
+    "reference_never_enters_model_request": true,
+    "not_official_hidden_test": true,
+    "not_independent_expert_gold": true,
+    "single_attempt_no_score_driven_retry": true
+  }
+}

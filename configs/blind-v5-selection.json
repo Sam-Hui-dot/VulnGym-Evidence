@@ -1,0 +1,343 @@
+{
+  "evaluation_id": "blind-v5",
+  "selection_status": "frozen",
+  "selection_date": "2026-09-04",
+  "reference_ref": "v0.1.4",
+  "semantic_behavior_base_commit": "bb54fb5edf9a54807fb978fa16a67c8ef676fe13",
+  "freeze_commit_status": "selection, reviewed labels, evidence and protocol must be committed before the only Blind v5 model attempt",
+  "run_settings": {
+    "model": "qwen3.8-max",
+    "enable_thinking": false,
+    "max_output_tokens": 8192,
+    "provider_config": "configs/provider.qwen.json",
+    "provider_process_timeout_seconds": 240,
+    "context_lines": 12,
+    "stages": [
+      "judge",
+      "critic"
+    ],
+    "concurrency": 1,
+    "retry_policy": "only frozen transport and schema-contract retries; no answer-based retry",
+    "missing_policy": "retain errors and incomplete rows; score missing predictions explicitly"
+  },
+  "frozen_versions": {
+    "evidence_packet": "0.8.0",
+    "workflow": "0.1.0",
+    "judge_prompt": "1.7.0",
+    "critic_prompt": "1.7.0"
+  },
+  "policy": {
+    "purpose": "entry-and-report-isolated Blind v5 evaluation of lifecycle-aware Prompt 1.7.0 on six unseen repositories",
+    "not_official_hidden_test": true,
+    "entry_and_report_isolation": true,
+    "repository_isolation": false,
+    "repository_isolation_reason": "all locally available repositories have appeared in development, but selected entry and report IDs are unseen",
+    "review_before_model_run": true,
+    "no_tuning_on_results": true,
+    "failure_policy": "retain the first attempted Blind v5 run including failures; result-driven changes require a new evaluation id",
+    "not_independent_expert_gold": true,
+    "advisory_boundary": "GitHub advisory API returned 404 for these newly published 2026 records on 2026-09-04; reference review uses fixed source plus VulnGym v0.1.4 human-reviewed records and does not claim an independently fetched advisory.",
+    "reference_isolation": "Reference labels and review notes never enter model evidence.",
+    "field_policy": "Judge the whole field including material descriptive claims. Accept explanatory inline annotations and defensible alternate source/sink anchors when the underlying operation is accurate. Invalid or materially wrong source locations make the field incorrect.",
+    "reference_scope": "six unseen entries and reports across six repositories, reviewed before model prediction"
+  },
+  "excluded_development_entry_ids": [
+    "entry-00057",
+    "entry-00058",
+    "entry-00061",
+    "entry-00062",
+    "entry-00064",
+    "entry-00065",
+    "entry-00066",
+    "entry-00071",
+    "entry-00074",
+    "entry-00080",
+    "entry-00082",
+    "entry-00084",
+    "entry-00087",
+    "entry-00090",
+    "entry-00097",
+    "entry-00102",
+    "entry-00107",
+    "entry-00110",
+    "entry-00114",
+    "entry-00119",
+    "entry-00121",
+    "entry-00122",
+    "entry-00146",
+    "entry-00153",
+    "entry-00171",
+    "entry-00258",
+    "entry-00271",
+    "entry-00276",
+    "entry-00311",
+    "entry-00313",
+    "entry-00314",
+    "entry-00317",
+    "entry-00319",
+    "entry-00320",
+    "entry-00334",
+    "entry-00335",
+    "entry-00341",
+    "entry-00352",
+    "entry-00376",
+    "entry-00383",
+    "entry-00389",
+    "entry-00394",
+    "entry-00410",
+    "entry-00419",
+    "entry-00430",
+    "entry-00437",
+    "entry-00438",
+    "entry-00446",
+    "entry-00462",
+    "entry-00464",
+    "entry-00507"
+  ],
+  "excluded_development_report_ids": [
+    "GHSA-265W-RF2W-CJH4",
+    "GHSA-345P-7CG4-V4C7",
+    "GHSA-4M3H-WP5W-5HQH",
+    "GHSA-4X5P-F36R-MXXR",
+    "GHSA-58JC-RCG5-95F3",
+    "GHSA-5H2M-4Q8J-PQPJ",
+    "GHSA-64QX-VPXX-MVQF",
+    "GHSA-69FQ-XP46-6X23",
+    "GHSA-6QV9-48XG-FC7F",
+    "GHSA-75HX-XJ24-MQRW",
+    "GHSA-78H3-63C4-5FQC",
+    "GHSA-7PPG-37FH-VCR6",
+    "GHSA-8X34-9Q3V-H7G8",
+    "GHSA-9379-MWVR-7WXX",
+    "GHSA-9G95-QF3F-GGRW",
+    "GHSA-9P3R-HH9G-5CMG",
+    "GHSA-C5CP-VX83-JHQX",
+    "GHSA-C6XV-RCVW-V685",
+    "GHSA-CCJ6-79J6-CQ5Q",
+    "GHSA-F6MR-38G8-39RG",
+    "GHSA-FJH6-8679-9PCH",
+    "GHSA-G2J9-7RJ2-GM6C",
+    "GHSA-GQ3W-7JJ3-X7GR",
+    "GHSA-H3F9-MJWJ-W476",
+    "GHSA-H6GW-8F77-MMMP",
+    "GHSA-J4P8-H8MH-RH8Q",
+    "GHSA-JJHC-V7C2-5HH6",
+    "GHSA-JJP7-G2JW-WH3J",
+    "GHSA-JM6W-M3J8-898G",
+    "GHSA-M4JW-WGMF-889X",
+    "GHSA-MHJQ-8C7M-3F7P",
+    "GHSA-Q2HG-643C-GW8H",
+    "GHSA-Q56X-G2FJ-4RJ6",
+    "GHSA-QPQ4-PW7F-PP8W",
+    "GHSA-R277-3XC5-C79V",
+    "GHSA-RF6X-R45M-XV3W",
+    "GHSA-RG7C-G689-FR3X",
+    "GHSA-RV39-79C4-7459",
+    "GHSA-RVHJ-8CHJ-8V3C",
+    "GHSA-V4PR-FM98-W9PG",
+    "GHSA-V5W9-PRXF-W882",
+    "GHSA-V7V2-M736-CF3C",
+    "GHSA-V98V-FF95-F3CP",
+    "GHSA-VR7G-88FQ-VHQ3",
+    "GHSA-VV7Q-7JX5-F767",
+    "GHSA-W7XJ-8FX7-WFCH",
+    "GHSA-WVHQ-WP8G-C7VQ",
+    "GHSA-X39M-3393-3QP4",
+    "GHSA-XFQJ-R5QW-8G4J",
+    "GHSA-XP9R-PRPG-373R",
+    "GHSA-XVH5-5QG4-X9QP"
+  ],
+  "cases": [
+    {
+      "case_id": "blind-v5-history-entry-00104",
+      "kind": "history_revision",
+      "entry_id": "entry-00104",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.code",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "n8n TOCTOU source, time-of-use sink and path trace",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "correct",
+          "critical_operation": "correct",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "incorrect"
+        },
+        "notes": {
+          "entry_point": "The declared line identifies the user-controlled file selector; the appended annotation is explanatory rather than claimed upstream source.",
+          "critical_operation": "The declared line is the actual createReadStream time-of-use call; the appended TOCTOU explanation is consistent with the source.",
+          "trace": "All six trace nodes use line 0, so the claimed path is not locatable even though its high-level TOCTOU narrative is plausible."
+        }
+      }
+    },
+    {
+      "case_id": "blind-v5-history-entry-00125",
+      "kind": "history_revision",
+      "entry_id": "entry-00125",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.code",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "OpenClaw request-controlled session routing",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "correct",
+          "critical_operation": "correct",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "correct"
+        },
+        "notes": {
+          "entry_and_sink": "The request body enters at server-http.ts:187 and dispatchAgentHook consumes normalized.value, including request-derived sessionKey, at 218.",
+          "trace": "All seven nonzero anchors identify the same request-to-sessionKey route as the v0.1.4 reviewed record. Inline annotations and one ellipsis summarize source without changing the operations.",
+          "patch_boundary": "The nearest direct child hardens hook token authentication but is not treated as a fix for request-controlled session routing."
+        }
+      }
+    },
+    {
+      "case_id": "blind-v5-history-entry-00262",
+      "kind": "history_revision",
+      "entry_id": "entry-00262",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.code",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "Flowise unauthenticated MIME-spoofed upload",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "correct",
+          "critical_operation": "correct",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "correct"
+        },
+        "notes": {
+          "entry_and_sink": "The route at attachments/index.ts:8 reaches createAttachment, whose MIME-only allow-list check is at createAttachment.ts:137.",
+          "trace": "All seven nonzero anchors form the whitelist-to-upload-to-MIME-check path. Appended comments are explanatory and do not replace the underlying statements.",
+          "fix": "e47d9466 adds MIME and extension validation in createAttachment.ts and is explicitly pinned as the relevant fix evidence."
+        }
+      }
+    },
+    {
+      "case_id": "blind-v5-history-entry-00324",
+      "kind": "history_revision",
+      "entry_id": "entry-00324",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.code",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "Langflow unauthenticated cross-flow image read",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "correct",
+          "critical_operation": "correct",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "correct"
+        },
+        "notes": {
+          "entry_and_sink": "The public image route at files.py:138 reaches storage_service.get_file at 161 without an ownership dependency.",
+          "trace": "All eight nonzero anchors follow one function from route registration through the unauthenticated read and response.",
+          "fix": "04b4af6 changes the raw flow UUID to an ownership-checked get_flow dependency and is pinned as the relevant fix."
+        }
+      }
+    },
+    {
+      "case_id": "blind-v5-history-entry-00447",
+      "kind": "history_revision",
+      "entry_id": "entry-00447",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.line",
+        "entry_point.code",
+        "critical_operation.line",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "Paperclip cross-tenant agent API-key creation",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "incorrect",
+          "critical_operation": "incorrect",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "incorrect"
+        },
+        "notes": {
+          "entry_point": "The exact route exists at 2218-2220, not the declared 2089-2091; the location points into unrelated code.",
+          "critical_operation": "The createApiKey call exists at 2225, not 2092; the declared location and multiline source do not match.",
+          "trace": "Two nodes use line 0 and the remaining three lines point at unrelated statements. The high-level IDOR claim does not repair invalid source anchors.",
+          "patch_boundary": "A broad authorization hardening child exists, but no unambiguous atomic fix is pinned."
+        }
+      }
+    },
+    {
+      "case_id": "blind-v5-history-entry-00413",
+      "kind": "history_revision",
+      "entry_id": "entry-00413",
+      "candidate_ref": "v0.1.0",
+      "expected_changed_fields": [
+        "entry_point.code",
+        "critical_operation.line",
+        "critical_operation.code",
+        "trace"
+      ],
+      "focus": "MLflow FastAPI jobs authentication bypass",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "AI-assisted fixed-commit source and VulnGym v0.1.4 reviewed-reference audit; not independent expert Gold",
+        "labels": {
+          "entry_point": "correct",
+          "critical_operation": "incorrect",
+          "vuln_category_l1": "correct",
+          "vuln_category_l2": "correct",
+          "vuln_title": "correct",
+          "vuln_ids": "correct",
+          "commit": "correct",
+          "trace": "incorrect"
+        },
+        "notes": {
+          "entry_point": "job_api.py:68 is the FastAPI job submission route; the appended comment accurately summarizes its affected exposure.",
+          "critical_operation": "Line 0 is invalid, so the middleware bypass field is not locatable even though the underlying claim is supported by the fixed source and patch.",
+          "trace": "Two middleware nodes use line 0 and several later locations do not identify the claimed operations at the candidate commit.",
+          "fix": "bb62e773 adds authentication validators for previously uncovered FastAPI routes and is pinned as the relevant fix."
+        }
+      }
+    }
+  ]
+}

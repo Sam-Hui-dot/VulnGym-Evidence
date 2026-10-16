@@ -1,0 +1,67 @@
+{
+  "evaluation_id": "blind-v6",
+  "selection_status": "frozen",
+  "selection_date": "2026-09-05",
+  "reference_ref": "v0.1.4",
+  "semantic_behavior_base_commit": "1333341a954858011cb688769b73714c34fde3ca",
+  "run_settings": {
+    "model": "qwen3.8-max",
+    "enable_thinking": false,
+    "max_output_tokens": 8192,
+    "provider_config": "configs/provider.qwen.json",
+    "context_lines": 12,
+    "critic_policy": "review-risk",
+    "max_cases": 8,
+    "maximum_initial_api_calls": 8,
+    "maximum_total_api_calls": 12
+  },
+  "policy": {
+    "purpose": "evidence-complete, entry-and-report-isolated validation of post-v5 source policy and selective Critic",
+    "not_official_hidden_test": true,
+    "entry_and_report_isolation": true,
+    "repository_isolation": false,
+    "review_before_model_run": true,
+    "reference_never_enters_model_request": true,
+    "not_independent_expert_gold": true,
+    "failure_policy": "retain the first frozen attempt; do not retry based on answers",
+    "stop_policy": "stop before any call that would exceed the preregistered call cap"
+  },
+  "cases": [
+    {
+      "case_id": "blind-v6-history-entry-00135", "kind": "history_revision", "entry_id": "entry-00135", "candidate_ref": "v0.1.0",
+      "focus": "forwarded-header webhook signature validation with defensible alternate anchors",
+      "review": {"status": "reviewed", "reviewer": "AI-assisted fixed-source, upstream verified record and official advisory review; not independent expert Gold", "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"}, "notes": {"entry_point": "The enclosing reconstruction function is a defensible boundary for attacker-controlled headers.", "critical_operation": "The Twilio validation call is affected even though the reviewed record also highlights the Plivo branch.", "trace": "Two line-zero nodes are not locatable; the narrative alone does not repair their source identities."}}
+    },
+    {
+      "case_id": "blind-v6-history-entry-00130", "kind": "history_revision", "entry_id": "entry-00130", "candidate_ref": "v0.1.0",
+      "focus": "Telegram webhook secret enforcement after source-tree relocation",
+      "review": {"status": "reviewed", "reviewer": "AI-assisted fixed-source, upstream verified record and official advisory review; not independent expert Gold", "labels": {"entry_point": "incorrect", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"}, "notes": {"basis": "The candidate points to extensions/telegram, while the fixed commit stores and executes the webhook path under src/telegram; all claimed anchors are absent."}}
+    },
+    {
+      "case_id": "blind-v6-history-entry-00172", "kind": "history_revision", "entry_id": "entry-00172", "candidate_ref": "v0.1.0",
+      "focus": "n8n form expression injection with stale source locations",
+      "review": {"status": "reviewed", "reviewer": "AI-assisted fixed-source, upstream verified record and official advisory review; not independent expert Gold", "labels": {"entry_point": "incorrect", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"}, "notes": {"basis": "Entry, sink and all trace locations are stale at the declared commit; the sink text also differs materially from the real evaluateExpression call."}}
+    },
+    {
+      "case_id": "blind-v6-history-entry-00187", "kind": "history_revision", "entry_id": "entry-00187", "candidate_ref": "v0.1.0",
+      "focus": "OpenClaw browser-control authentication bootstrap",
+      "review": {"status": "reviewed", "reviewer": "AI-assisted fixed-source, upstream verified record and official advisory review; not independent expert Gold", "labels": {"entry_point": "incorrect", "critical_operation": "incorrect", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "incorrect"}, "notes": {"basis": "The high-level weakness is valid, but the submitted entry/sink locations are stale and most trace nodes use line zero."}}
+    },
+    {
+      "case_id": "blind-v6-clean-entry-00116", "kind": "clean", "entry_id": "entry-00116", "focus": "OpenClaw path handling",
+      "review": {"status": "reviewed", "reviewer": "VulnGym v0.1.4 verified record plus fixed-source and official advisory availability check; not independent expert Gold", "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"}, "notes": "Clean verified control; no contradictory fixed-source or advisory evidence found before prediction."}
+    },
+    {
+      "case_id": "blind-v6-clean-entry-00127", "kind": "clean", "entry_id": "entry-00127", "focus": "OpenClaw request boundary",
+      "review": {"status": "reviewed", "reviewer": "VulnGym v0.1.4 verified record plus fixed-source and official advisory availability check; not independent expert Gold", "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"}, "notes": "Clean verified control; no contradictory fixed-source or advisory evidence found before prediction."}
+    },
+    {
+      "case_id": "blind-v6-clean-entry-00134", "kind": "clean", "entry_id": "entry-00134", "focus": "OpenClaw authorization path",
+      "review": {"status": "reviewed", "reviewer": "VulnGym v0.1.4 verified record plus fixed-source and official advisory availability check; not independent expert Gold", "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"}, "notes": "Clean verified control; no contradictory fixed-source or advisory evidence found before prediction."}
+    },
+    {
+      "case_id": "blind-v6-clean-entry-00140", "kind": "clean", "entry_id": "entry-00140", "focus": "Nextcloud Talk integration boundary",
+      "review": {"status": "reviewed", "reviewer": "VulnGym v0.1.4 verified record plus fixed-source and official advisory availability check; not independent expert Gold", "labels": {"entry_point": "correct", "critical_operation": "correct", "vuln_category_l1": "correct", "vuln_category_l2": "correct", "vuln_title": "correct", "vuln_ids": "correct", "commit": "correct", "trace": "correct"}, "notes": "Clean verified control; no contradictory fixed-source or advisory evidence found before prediction."}
+    }
+  ]
+}

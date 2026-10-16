@@ -1,0 +1,9 @@
+{
+  "type": "json_command",
+  "name": "replace-with-model-wrapper",
+  "argv": [
+    "/absolute/path/to/provider-wrapper"
+  ],
+  "timeout_seconds": 120
+}
+

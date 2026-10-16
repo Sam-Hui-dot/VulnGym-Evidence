@@ -1,0 +1,66 @@
+{
+  "selection_version": "repo-holdout-v1",
+  "selection_goal": "Ten verified cases from ten repositories never used by the Pilot or prior unseen set, spanning business logic, command injection, SSRF, path traversal, template injection, race logic, and file-operation flaws.",
+  "cases": [
+    {
+      "entry_id": "entry-00065",
+      "project": "FlowiseAI/Flowise",
+      "repo_url": "https://github.com/FlowiseAI/Flowise",
+      "focus": "Cross-layer password-change workflow violation with a 12-node trace"
+    },
+    {
+      "entry_id": "entry-00437",
+      "project": "paperclipai/paperclip",
+      "repo_url": "https://github.com/paperclipai/paperclip",
+      "focus": "Agent capability boundary bypass ending in OS command execution"
+    },
+    {
+      "entry_id": "entry-00320",
+      "project": "langflow-ai/langflow",
+      "repo_url": "https://github.com/langflow-ai/langflow",
+      "focus": "Cross-file upload path traversal and arbitrary file write"
+    },
+    {
+      "entry_id": "entry-00389",
+      "project": "mlflow/mlflow",
+      "repo_url": "https://github.com/mlflow/mlflow",
+      "focus": "Model URI command injection through bash -c"
+    },
+    {
+      "entry_id": "entry-00062",
+      "project": "open-webui/open-webui",
+      "repo_url": "https://github.com/open-webui/open-webui",
+      "focus": "Authenticated SSRF with an eight-node request path"
+    },
+    {
+      "entry_id": "entry-00066",
+      "project": "langchain-ai/langchain",
+      "repo_url": "https://github.com/langchain-ai/langchain",
+      "focus": "Template attribute traversal and server-side template injection"
+    },
+    {
+      "entry_id": "entry-00114",
+      "project": "modelcontextprotocol/typescript-sdk",
+      "repo_url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "focus": "Cross-client state leakage caused by shared transport state"
+    },
+    {
+      "entry_id": "entry-00462",
+      "project": "onnx/onnx",
+      "repo_url": "https://github.com/onnx/onnx",
+      "focus": "TOCTOU, symlink following, and path traversal at a file-write sink"
+    },
+    {
+      "entry_id": "entry-00419",
+      "project": "BerriAI/litellm",
+      "repo_url": "https://github.com/BerriAI/litellm",
+      "focus": "JWT user-info cache-key collision causing authentication bypass"
+    },
+    {
+      "entry_id": "entry-00319",
+      "project": "nltk/nltk",
+      "repo_url": "https://github.com/nltk/nltk",
+      "focus": "Unauthenticated shutdown path in a local web application"
+    }
+  ]
+}

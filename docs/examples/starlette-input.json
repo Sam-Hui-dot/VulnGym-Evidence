@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "repo_url": "https://github.com/encode/starlette",
+  "report_text": "Starlette 跨域来源检查：教学复核报告\n\n这是一份根据公开源码编写的教学报告，用于练习核对具体说法，不是实际漏洞举报。\n代码仓库：https://github.com/encode/starlette\n代码版本：6beaa2e39d3381e1d7ddb89d4cc7cbb8c7ac0961\n\n一、匹配方式\n报告声称：这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。\n引用文件：starlette/middleware/cors.py\n引用行号：97\n引用代码：\n        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n\n二、函数行为\n报告声称：执行到正则判断这一分支时，正则完整匹配 origin 则返回 True；否则会检查 origin 是否位于 allow_origins 列表。\n引用文件：starlette/middleware/cors.py\n引用行号：97-100\n引用代码：\n        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n            return True\n\n        return origin in self.allow_origins\n\n三、实际部署\n报告声称：当前生产实例没有启用允许所有来源，并且 allow_origins 只包含两个经过批准的域名。\n引用文件：starlette/middleware/cors.py\n引用行号：94\n引用代码：\n        if self.allow_all_origins:",
+  "case_id": "starlette-cors-teaching",
+  "reviewed_commit": "6beaa2e39d3381e1d7ddb89d4cc7cbb8c7ac0961",
+  "source_link": "",
+  "vuln_ids": [],
+  "claims": [
+    {
+      "kind": "critical_operation",
+      "text": "这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。",
+      "origin": {
+        "quote": "这个正则分支使用 search，只要 origin 的任意子串匹配即可通过。",
+        "start": 164,
+        "end": 202
+      },
+      "node": {
+        "line": 97,
+        "file": "starlette/middleware/cors.py",
+        "code": "        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):"
+      },
+      "claim_id": "starlette-match"
+    },
+    {
+      "kind": "critical_operation",
+      "text": "执行到正则判断这一分支时，正则完整匹配 origin 则返回 True；否则会检查 origin 是否位于 allow_origins 列表。",
+      "origin": {
+        "quote": "执行到正则判断这一分支时，正则完整匹配 origin 则返回 True；否则会检查 origin 是否位于 allow_origins 列表。",
+        "start": 358,
+        "end": 429
+      },
+      "node": {
+        "line": "97-100",
+        "file": "starlette/middleware/cors.py",
+        "code": "        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):\n            return True\n\n        return origin in self.allow_origins"
+      },
+      "claim_id": "starlette-fallback"
+    },
+    {
+      "kind": "critical_operation",
+      "text": "当前生产实例没有启用允许所有来源，并且 allow_origins 只包含两个经过批准的域名。",
+      "origin": {
+        "quote": "当前生产实例没有启用允许所有来源，并且 allow_origins 只包含两个经过批准的域名。",
+        "start": 658,
+        "end": 705
+      },
+      "node": {
+        "line": 94,
+        "file": "starlette/middleware/cors.py",
+        "code": "        if self.allow_all_origins:"
+      },
+      "claim_id": "starlette-deployment"
+    }
+  ]
+}

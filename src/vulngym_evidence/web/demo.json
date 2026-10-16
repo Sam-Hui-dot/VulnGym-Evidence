@@ -1,0 +1,54 @@
+{
+  "provenance": "作者依据公开源码编写的教学报告，非真实用户反馈或新发现的漏洞",
+  "request": {
+    "schema_version": "1.0",
+    "case_id": "fastmcp-demo-v2",
+    "repo_url": "https://github.com/PrefectHQ/fastmcp",
+    "reviewed_commit": "40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71",
+    "vuln_ids": [],
+    "source_link": "",
+    "report_text": "FastMCP 报告复核演示\n\n来源说明：这是一份基于公开固定版本源码构造的教学演示报告，不是实际漏洞举报，也不表示发现了新的漏洞。以下内容是待核查说法，未附参考答案。\n\n代码仓库：https://github.com/PrefectHQ/fastmcp\n代码版本：40bdfb6b1de0ce30609ee9ba5bb95ecd04a9fb71\n\n一、引用位置\n报告引用的源码位于 src/fastmcp/utilities/openapi/director.py 第 215 行，其中包含下面的路径参数替换代码：\n                url_path = url_path.replace(placeholder, safe_value)\n\n二、操作描述\n这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：215\n引用代码：\n                url_path = url_path.replace(placeholder, safe_value)\n\n三、防护范围\n这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。\n引用文件：src/fastmcp/utilities/openapi/director.py\n引用行号：71\n引用代码：\n        return httpx.Request(\n",
+    "claims": [
+      {
+        "claim_id": "demo-location",
+        "kind": "source_location",
+        "text": "第 215 行包含路径参数替换代码。",
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 215,
+          "code": "                url_path = url_path.replace(placeholder, safe_value)"
+        }
+      },
+      {
+        "claim_id": "demo-encoding",
+        "kind": "critical_operation",
+        "text": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。",
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 215,
+          "code": "                url_path = url_path.replace(placeholder, safe_value)"
+        },
+        "origin": {
+          "quote": "这里直接把路径参数的原始字符串拼入 URL；从参数值到占位符替换之间没有 URL 编码，也没有处理点号。",
+          "start": 336,
+          "end": 388
+        }
+      },
+      {
+        "claim_id": "demo-network",
+        "kind": "critical_operation",
+        "text": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。",
+        "node": {
+          "file": "src/fastmcp/utilities/openapi/director.py",
+          "line": 71,
+          "code": "        return httpx.Request("
+        },
+        "origin": {
+          "quote": "这里返回的每个请求在实际发往网络之前，都会在调用方检查 DNS 解析结果并拒绝私网 IP，重定向后也必定再次检查。",
+          "start": 528,
+          "end": 585
+        }
+      }
+    ]
+  }
+}

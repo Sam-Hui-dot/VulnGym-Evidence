@@ -1,0 +1,8 @@
+.git
+out
+artifacts
+materials
+**/__pycache__
+**/*.pyc
+.env
+**/*budget*.json

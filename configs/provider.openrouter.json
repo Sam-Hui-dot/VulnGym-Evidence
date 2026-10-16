@@ -1,0 +1,10 @@
+{
+  "type": "json_command",
+  "name": "openrouter",
+  "argv": [
+    "python3",
+    "-m",
+    "vulngym_agent.openrouter_provider"
+  ],
+  "timeout_seconds": 240
+}
